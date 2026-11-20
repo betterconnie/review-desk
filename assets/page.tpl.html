@@ -466,14 +466,14 @@ async function pubDb() { let st = { comments: {}, approvals: {}, choices: {} }; 
     if (mine.length) localStorage.setItem('cms', JSON.stringify(old.filter(x => x.ver !== D.ver))); } catch (e) {}
   setInterval(() => { if (document.visibilityState === 'visible' && !document.activeElement.matches('textarea')) load().catch(() => {}); }, 30000);   // 別台裝置寫的，30 秒內會出現
   return api; }
-async function sendForm(btn) { if (!cms.length && !P.some(isOk) && !pick && !vOk()) { note('還沒有意見或核准可以傳。', true); return; }
-  if (btn) btn.disabled = true; note('傳送中…');
+let sending = false; async function sendForm(btn) { const sig = sendText(6000); if (sending) return; if (sig === (function () { try { return localStorage.getItem(LSK + 'sent'); } catch (e) { return null; } })()) { note('這些內容剛才已經傳過了，沒有新的要傳。有新意見或改了核准再按。'); return; } if (!cms.length && !P.some(isOk) && !pick && !vOk()) { note('還沒有意見或核准可以傳。', true); return; }
+  sending = true; if (btn) btn.disabled = true; note('傳送中…');
   try { const at = new Date().toISOString(), body = new URLSearchParams({ 'form-name': 'review', board: D.board, sent: at, summary: sendText(6000), payload: JSON.stringify(db.state()).slice(0, 60000) });
     const r = await fetch('/', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: body.toString() }); if (!r.ok) throw { code: 'http_' + r.status };
-    await db.collection('meta').doc('sent').set({ at, n: cms.length });
+    await db.collection('meta').doc('sent').set({ at, n: cms.length }); try { localStorage.setItem(LSK + 'sent', sig); } catch (e) {}
     note('已傳給 ' + AG + '（' + new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) + '）。' + AG + ' 下次查看審片網站時會讀到。'); }
   catch (e) { note('沒有傳成功（' + (e && e.code || '網路') + '）。意見都還在，請再按一次。', true); }
-  finally { if (btn) btn.disabled = false; } }
+  finally { sending = false; if (btn) btn.disabled = false; } }
 (async () => { const slow = setTimeout(() => { if (!db && !local) note('意見儲存還在連線中…', true); }, 10000);
   try { db = D.pub ? await pubDb() : window.claude && window.claude.use ? await window.claude.use('db') : null; } catch (e) { db = null; }
   if (!db) { clearTimeout(slow); useLocal(); return; }

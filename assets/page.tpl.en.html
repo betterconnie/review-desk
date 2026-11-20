@@ -466,14 +466,14 @@ async function pubDb() { let st = { comments: {}, approvals: {}, choices: {} }; 
     if (mine.length) localStorage.setItem('cms', JSON.stringify(old.filter(x => x.ver !== D.ver))); } catch (e) {}
   setInterval(() => { if (document.visibilityState === 'visible' && !document.activeElement.matches('textarea')) load().catch(() => {}); }, 30000);   // comments written on another device show up within 30 seconds
   return api; }
-async function sendForm(btn) { if (!cms.length && !P.some(isOk) && !pick && !vOk()) { note('There are no comments or approvals to send yet.', true); return; }
-  if (btn) btn.disabled = true; note('Sending…');
+let sending = false; async function sendForm(btn) { const sig = sendText(6000); if (sending) return; if (sig === (function () { try { return localStorage.getItem(LSK + 'sent'); } catch (e) { return null; } })()) { note('This was already sent. There is nothing new to send. Add a comment or change an approval first.'); return; } if (!cms.length && !P.some(isOk) && !pick && !vOk()) { note('There are no comments or approvals to send yet.', true); return; }
+  sending = true; if (btn) btn.disabled = true; note('Sending…');
   try { const at = new Date().toISOString(), body = new URLSearchParams({ 'form-name': 'review', board: D.board, sent: at, summary: sendText(6000), payload: JSON.stringify(db.state()).slice(0, 60000) });
     const r = await fetch('/', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: body.toString() }); if (!r.ok) throw { code: 'http_' + r.status };
-    await db.collection('meta').doc('sent').set({ at, n: cms.length });
+    await db.collection('meta').doc('sent').set({ at, n: cms.length }); try { localStorage.setItem(LSK + 'sent', sig); } catch (e) {}
     note('Sent to ' + AG + ' (' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) + '). ' + AG + ' will see it the next time it checks the review site.'); }
   catch (e) { note('Could not send (' + (e && e.code || 'network') + '). Your comments are all still here, please try again.', true); }
-  finally { if (btn) btn.disabled = false; } }
+  finally { sending = false; if (btn) btn.disabled = false; } }
 (async () => { const slow = setTimeout(() => { if (!db && !local) note('Still connecting to comment storage…', true); }, 10000);
   try { db = D.pub ? await pubDb() : window.claude && window.claude.use ? await window.claude.use('db') : null; } catch (e) { db = null; }
   if (!db) { clearTimeout(slow); useLocal(); return; }
