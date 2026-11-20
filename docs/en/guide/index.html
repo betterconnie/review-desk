@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review Desk quick-start guide</title>
+<meta name="description" content="One-page quick start for Review Desk: install it, open a review page, mark moments, copy the comment list to your AI and approve a version. Free, MIT licensed.">
+<link rel="alternate" hreflang="zh-Hant" href="https://betterconnie.github.io/review-desk/guide/">
+<link rel="alternate" hreflang="en" href="https://betterconnie.github.io/review-desk/en/guide/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Review Desk quick-start guide">
+<meta property="og:description" content="One-page quick start for Review Desk: install it, open a review page, mark moments, copy the comment list to your AI and approve a version. Free, MIT licensed.">
+<meta property="og:url" content="https://betterconnie.github.io/review-desk/en/guide/">
+<meta property="og:image" content="https://betterconnie.github.io/review-desk/img/en/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://betterconnie.github.io/review-desk/img/en/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Hallmark · v2.0.0 · theme: dark cutting-room workbench (by request, DESIGN.md) · genre: modern-minimal · job: install and learn · shape: single column manual with screenshots per step · hero: left-aligned head, tagline and the GitHub button · nav: wordmark and a language link · footer: links · copy: verbatim */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: V, this is a dense manual with many screenshots and no single hero object; kept the page flat so it prints on A4 */
+/* Hallmark · waive 77 · the Install section is one command line in a full-width block · a picture of Install would be invented material (46a) */
+/* Hallmark · waive 59 · the Install, Approve and Review faster sections sit close together so the guide prints on three A4 pages · each section is one short step */
+/* Hallmark · waive 78 · section heads stay at one modest size · a quick-start guide keeps Review faster and Approve on one screen so the steps stay together */
+/* Hallmark · waive 44c · the guide opens with its title, tagline and the GitHub button · nothing else belongs on the first screen of a manual */
+
+:root{
+  --bg:#0b0f14;--panel:#131a22;--panel-up:#1a232e;--line:#2a3644;--text:#e8edf2;--muted:#93a1b0;
+  --accent:#ffd166;--accent-ink:#0b0f14;--ok:#4ccf8e;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --radius:10px;--gutter:clamp(16px,4vw,32px);--col-gap:clamp(20px,4vw,48px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{overflow-x:clip}
+html{background:var(--bg);color:var(--text);-webkit-text-size-adjust:100%;scrollbar-color:var(--line) var(--bg)}
+body{margin:0;font-family:var(--font-body);font-size:16px;line-height:1.6;background:var(--bg);color:var(--text);font-synthesis:none;caret-color:var(--accent)}
+::selection{background:var(--accent);color:var(--accent-ink)}
+img{display:block;max-width:100%;height:auto}
+a{color:inherit}
+code{font-family:var(--font-mono);font-size:.92em;color:var(--text);background:var(--panel-up);border:1px solid var(--line);border-radius:6px;padding:.05em .4em;white-space:nowrap}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;transition:none}
+.wrap{width:min(100% - var(--gutter)*2,1080px);margin-inline:auto}
+h1,h2,h3{margin:0;font-weight:700;overflow-wrap:break-word;min-width:0;text-wrap:balance;letter-spacing:-.01em;line-height:1.2}
+h1{font-size:clamp(1.8rem,4vw,2.6rem)}
+h2{font-size:clamp(1.35rem,2.6vw,1.8rem)}
+h3{font-size:1.1rem}
+p{margin:0;text-wrap:pretty}
+.tc{flex:none;font-family:var(--font-mono);font-size:.8rem;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
+.hd{display:flex;gap:.9em;align-items:baseline;margin-bottom:12px}
+section{padding-block:clamp(24px,3vw,32px);border-top:1px solid var(--line)}
+section.first{border-top:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 1.4em;font:700 1rem/1 var(--font-body);text-decoration:none;border-radius:var(--radius);border:1px solid var(--line);color:var(--text);background:transparent;transition:background-color .15s ease,border-color .15s ease}
+.btn:hover{background:var(--panel-up);border-color:var(--muted)}
+.btn:active,.copybtn:active{transform:translateY(1px)}
+.copybtn:disabled{opacity:.5;cursor:default}
+.btn-main{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn-main:hover{background:var(--accent);border-color:var(--text);filter:brightness(1.06)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
+.mark{font-weight:700;text-decoration:none}
+.lang{display:inline-flex;align-items:center;min-height:44px;color:var(--muted);font-size:.9rem;text-decoration:underline;text-underline-offset:.25em;text-decoration-color:var(--line)}
+.lang:hover{color:var(--text);text-decoration-color:var(--muted)}
+.intro{padding-block:12px clamp(28px,4vw,44px)}
+.tagline{margin-top:12px;max-width:44em;font-size:1.1rem}
+.cta{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;margin-top:20px}
+.urltext{font-family:var(--font-mono);font-size:.9rem;color:var(--muted)}
+.fine{margin-top:12px;color:var(--muted);font-size:.9rem}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--col-gap);align-items:start}
+.cols3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--col-gap);align-items:start}
+.need{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.need li{padding:12px 16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
+.instrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}
+.instrow .copybtn{margin-top:0;min-height:44px}
+pre{margin:0;padding:16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;overflow-x:auto;font-variant-numeric:tabular-nums;color:var(--text)}
+pre.wrapit{white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:visible}
+.copybtn{margin-top:8px;min-height:44px;padding:0 1em;font:700 .9rem/1 var(--font-body);color:var(--text);background:transparent;border:1px solid var(--line);border-radius:var(--radius);cursor:pointer}
+.copybtn:hover{background:var(--panel-up);border-color:var(--muted)}
+.alt{margin-top:12px;color:var(--muted)}
+.step{display:grid;gap:8px;align-content:start}
+.step .n{font-family:var(--font-mono);color:var(--muted);font-size:.85rem}
+.shot{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden;margin:0}
+.shot img{width:100%}
+.card4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--col-gap) var(--col-gap)}
+.card4 .c{display:grid;gap:8px;align-content:start}
+.card4 .c .ch{display:flex;gap:.6em;align-items:baseline}
+.card4 .c .ch .n{font-family:var(--font-mono);font-size:.85rem;font-weight:400;color:var(--muted)}
+.stack{display:grid;gap:12px}
+.phones{display:grid;grid-template-columns:minmax(0,210px) minmax(0,1fr);gap:var(--col-gap);align-items:start}
+.phone .shot{border-radius:20px}
+.list{margin:0;padding-left:1.2em;display:grid;gap:8px}
+.foot{padding-block:28px clamp(40px,6vw,64px);border-top:1px solid var(--line)}
+.links{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:16px;font-size:.95rem}
+.links a{display:inline-flex;align-items:center;min-height:44px}
+.printurl{display:none}
+@media (max-width:700px){
+  .cols,.cols3,.card4,.phones{grid-template-columns:minmax(0,1fr)}
+  .phones .phone{max-width:240px}
+  .cta .btn{flex:1 1 100%}
+  .need{grid-template-columns:minmax(0,1fr)}
+  .instrow{grid-template-columns:minmax(0,1fr)}
+}
+@media print{
+  :root{--bg:#fff;--panel:#f3f5f7;--panel-up:#e9edf1;--line:#c9d1d9;--text:#14181d;--muted:#4a5560;--accent:#14181d;--accent-ink:#fff;--ok:#1b7a4b}
+  @page{size:A4;margin:11mm}
+  html{background:var(--bg)}
+  body{font-size:10pt;line-height:1.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .wrap{width:100%}
+  h1{font-size:20pt}h2{font-size:13pt}h3{font-size:10.5pt}
+  section{padding-block:8px}
+  .intro{padding-block:0 8px}
+  .step,.card4 .c,.shot,.phones,.cols>div,pre,.need li{break-inside:avoid}
+  .instrow{grid-template-columns:minmax(0,1fr)}
+  .copybtn,.lang,.top .mark,.foot .links .live{display:none}
+  .btn-main{border:1.5px solid var(--text);background:var(--bg);color:var(--text);min-height:0;padding:8px 12px}
+  .urltext{color:var(--text);font-size:10pt}
+  .cols,.cols3{gap:12px}
+  .card4{gap:8px 16px}
+  .phones{grid-template-columns:150px minmax(0,1fr);gap:16px}
+  .phone .shot img{width:150px}
+  .phones .phone{max-width:none}
+  .tagline{font-size:10.5pt}
+  .hd{margin-bottom:8px}
+  .tc{display:none}
+  pre{font-size:7.6pt;padding:8px 12px}
+  .printurl{display:inline}
+  a{text-decoration:none}
+  .foot{padding-block:8px}
+  .foot .btn{margin-right:8px}
+  .hd{break-after:avoid}
+}
+</style>
+</head>
+<body>
+
+<header class="top wrap">
+  <a class="mark" href="../">Review Desk</a>
+  <a class="lang" href="../../guide/" hreflang="zh-Hant" lang="zh-Hant">繁體中文</a>
+</header>
+
+<main class="wrap">
+<section class="intro first">
+  <h1>Review Desk quick-start guide</h1>
+  <p class="tagline">AI makes the video. You review it. Point at a shot and that’s the one it fixes.</p>
+  <div class="cta">
+    <a class="btn btn-main" href="https://github.com/betterconnie/review-desk">Get it on GitHub</a>
+    <span class="urltext">github.com/betterconnie/review-desk</span>
+  </div>
+  <p class="fine">Free, MIT licensed, open source</p>
+</section>
+
+<section aria-labelledby="need">
+  <div class="hd"><span class="tc" aria-hidden="true">01</span><h2 id="need">What you need</h2></div>
+  <ul class="need"><li>Python 3.9 or later</li><li>ffmpeg</li><li>An AI agent (Claude Code, Codex and others)</li></ul>
+</section>
+
+<section aria-labelledby="inst">
+  <div class="hd"><span class="tc" aria-hidden="true">02</span><h2 id="inst">Install</h2></div>
+  <div class="instrow"><pre id="clone" aria-label="git clone command">git clone https://github.com/betterconnie/review-desk ~/.claude/skills/review-desk</pre>
+  <button class="copybtn" type="button" data-target="clone" data-done="Copied">Copy</button></div>
+  <p class="alt">Or tell your AI: “Install the review-desk skill from github.com/betterconnie/review-desk”</p>
+</section>
+
+<section aria-labelledby="use">
+  <div class="hd"><span class="tc" aria-hidden="true">03</span><h2 id="use">Use it</h2></div>
+  <div class="cols3">
+    <div class="step"><span class="n">1</span><p>Tell your AI agent: “Open the review desk.” It turns your film into a web page and opens it in your browser.<br><span class="alt">Want the English interface? Say: “use the English interface.” (The AI adds <code>--lang en</code>.)</span></p></div>
+    <div class="step"><span class="n">2</span><p>Watch, mark and comment. Click <b>▶︎ Play</b> or drag the timeline. Stop where you want a change, type, and click <b>Add comment at 0:19</b>.</p>
+      <figure class="shot"><img src="../../img/en/hero.png" width="1600" height="1669" alt="The player with three comments pinned at 0:13, 0:19 and 0:24" loading="lazy"></figure></div>
+    <div class="step"><span class="n">3</span><p>Open <b>My comments</b>, click <b>Copy all comments</b>, and paste the text into the chat.</p>
+      <figure class="shot"><img src="../../img/en/comment-list.png" width="1400" height="542" alt="The comment list with each comment saved on this device" loading="lazy"></figure></div>
+  </div>
+</section>
+
+<section aria-labelledby="fast">
+  <div class="hd"><span class="tc" aria-hidden="true">04</span><h2 id="fast">Review faster</h2></div>
+  <div class="card4"><div class="c"><div class="ch"><span class="n">1</span><h3>Drag the timeline to preview every shot</h3></div><p>Move the mouse over the video and the overview timeline appears. Drag it to see each shot. On a phone, tap the picture to show it.</p><figure class="shot"><img src="../../img/en/guide/overview.png" width="1000" height="587" alt="Overview timeline with a preview thumbnail at 0:13" loading="lazy"></figure></div><div class="c"><div class="ch"><span class="n">2</span><h3>Mark as you watch</h3></div><p>Click <b>+ Mark here</b> at each spot. The video keeps playing. You do not have to type yet.</p><figure class="shot"><img src="../../img/en/guide/mark-button.png" width="1200" height="114" alt="The row of player buttons including + Mark here" loading="lazy"></figure></div><div class="c"><div class="ch"><span class="n">3</span><h3>Fill in the text afterwards</h3></div><p>Open <b>My comments</b> and type under each mark. Click <b>Save 4 written marks</b>, or just click <b>Copy all comments</b>: written drafts go along.</p><figure class="shot"><img src="../../img/en/guide/marks-filled.png" width="1000" height="697" alt="Four marks with their comments filled in and the Save 4 written marks button" loading="lazy"></figure></div><div class="c"><div class="ch"><span class="n">4</span><h3>Copy the whole list</h3></div><p>Click <b>Copy all comments</b> and paste. Every comment carries its time, shot name and source.</p><pre class="wrapit" aria-label="Example of what the AI receives">[v1] From Review Desk: 4 comments; version not approved yet.
+[0:06 | Shot 2 "Sunrise" | Original, no external assets] Hold the sunrise a beat longer
+[0:13 | Shot 4 "4 minutes in a cup" | Original, no external assets] The bars grow too slowly
+[0:19 | Shot 5 "Storefront" | Original, no external assets] The sign is too small
+[0:24 | Shot 6 "Three reasons" | Original, no external assets] Bring the third card in later</pre></div></div>
+</section>
+
+<section class="cols" aria-labelledby="approve">
+  <div>
+    <div class="hd"><span class="tc" aria-hidden="true">05</span><h2 id="approve">Approve</h2></div>
+    <p>Click <b>✓ Approve this version</b>. It turns into <b>Confirm approval? Click again</b>. Click again within 4 seconds and the approval counts.</p>
+    <p class="alt">A new version needs its own approval: the old one does not carry over. Click <b>Undo approval</b> if you pressed by mistake. Only your own click counts.</p>
+  </div>
+  <div class="stack">
+    <figure class="shot"><img src="../../img/en/approve.png" width="1320" height="236" alt="The green Approve this version button" loading="lazy"></figure>
+    <figure class="shot"><img src="../../img/en/approved.png" width="1450" height="237" alt="After approval, with the Undo approval button" loading="lazy"></figure>
+  </div>
+</section>
+
+<section aria-labelledby="phone">
+  <div class="hd"><span class="tc" aria-hidden="true">06</span><h2 id="phone">Review on your phone (optional)</h2></div>
+  <div class="phones">
+    <figure class="phone"><div class="shot"><img src="../../img/en/guide/phone-sent.png" width="600" height="1300" alt="The cloud review page on a phone with the Send to AI button" loading="lazy"></div></figure>
+    <div class="stack">
+      <ol class="list"><li>First put Review Desk online: your own Netlify site, following <code>cloud/README.en.md</code>.</li><li>Then open the link on your phone. Tap the picture to show the timeline.</li><li>Click <b>Send to AI</b>, then tell the AI in the chat that you sent them. It does not wake up by itself.</li><li>Until you set a password, anyone with the link can watch the film and write comments.</li></ol>
+      <figure class="shot" style="max-width:420px"><img src="../../img/en/guide/home-card.png" width="700" height="276" alt="Home page card showing 3 comments written and all sent to AI" loading="lazy"></figure>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="know">
+  <div class="hd"><span class="tc" aria-hidden="true">07</span><h2 id="know">Good to know</h2></div>
+  <ul class="list"><li>The film stays on your computer by default. Review Desk opens a local page, and neither the video nor your comments are uploaded. The page only asks Google Fonts for font files.</li><li>In local mode, comments live only in the browser of that computer.</li><li>Automatic shot detection looks at brightness differences, so two shots with similar brightness can be missed. Use <code>--scene 0.1</code> or write a shot list.</li><li>So far it has only been tried in practice with Claude. The comment list is plain text, so you can paste it to any AI.</li></ul>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="btn btn-main" href="https://github.com/betterconnie/review-desk">Get it on GitHub</a>
+    <span class="urltext printurl"> github.com/betterconnie/review-desk</span>
+    <div class="links">
+      <a href="https://github.com/betterconnie/review-desk">github.com/betterconnie/review-desk</a>
+      <a class="live" href="../demo/">Try the live demo</a>
+      <a href="../">Back to the intro page</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('.copybtn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var t=document.getElementById(b.dataset.target).textContent,old=b.textContent;
+    function ok(){b.textContent=b.dataset.done;setTimeout(function(){b.textContent=old},1500)}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,function(){})}
+  });
+});
+</script>
+</body>
+</html>

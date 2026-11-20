@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>審片台快速上手說明書</title>
+<meta name="description" content="審片台快速上手：安裝、開審片頁、標記、複製意見貼給 AI、核准版本。一頁看完。免費、MIT 授權。">
+<link rel="alternate" hreflang="zh-Hant" href="https://betterconnie.github.io/review-desk/guide/">
+<link rel="alternate" hreflang="en" href="https://betterconnie.github.io/review-desk/en/guide/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="審片台快速上手說明書">
+<meta property="og:description" content="審片台快速上手：安裝、開審片頁、標記、複製意見貼給 AI、核准版本。一頁看完。免費、MIT 授權。">
+<meta property="og:url" content="https://betterconnie.github.io/review-desk/guide/">
+<meta property="og:image" content="https://betterconnie.github.io/review-desk/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://betterconnie.github.io/review-desk/img/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Hallmark · v2.0.0 · theme: dark cutting-room workbench (by request, DESIGN.md) · genre: modern-minimal · job: install and learn · shape: single column manual with screenshots per step · hero: left-aligned head, tagline and the GitHub button · nav: wordmark and a language link · footer: links · copy: verbatim */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: V, this is a dense manual with many screenshots and no single hero object; kept the page flat so it prints on A4 */
+/* Hallmark · waive 77 · the 安裝 section is one command line in a full-width block · a picture of 安裝 would be invented material and break the no-invention rule (46a) */
+/* Hallmark · waive 59 · the 安裝, 核准 and 審片更快的四個動作 sections sit close together so the guide prints on three A4 pages · each section is one short step */
+/* Hallmark · waive 78 · section heads stay at one modest size · a small 核准 head keeps the steps, the 複製 button and the GitHub footer together on one screen */
+/* Hallmark · waive 44c · the guide opens with its title, tagline and the GitHub button · nothing else belongs on the first screen of a 說明書 */
+
+:root{
+  --bg:#0b0f14;--panel:#131a22;--panel-up:#1a232e;--line:#2a3644;--text:#e8edf2;--muted:#93a1b0;
+  --accent:#ffd166;--accent-ink:#0b0f14;--ok:#4ccf8e;
+  --font-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --radius:10px;--gutter:clamp(16px,4vw,32px);--col-gap:clamp(20px,4vw,48px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{overflow-x:clip}
+html{background:var(--bg);color:var(--text);-webkit-text-size-adjust:100%;scrollbar-color:var(--line) var(--bg)}
+body{margin:0;font-family:var(--font-body);font-size:16px;line-height:1.75;background:var(--bg);color:var(--text);font-synthesis:none;line-break:strict;caret-color:var(--accent)}
+::selection{background:var(--accent);color:var(--accent-ink)}
+img{display:block;max-width:100%;height:auto}
+a{color:inherit}
+code{font-family:var(--font-mono);font-size:.92em;color:var(--text);background:var(--panel-up);border:1px solid var(--line);border-radius:6px;padding:.05em .4em;white-space:nowrap}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;transition:none}
+.wrap{width:min(100% - var(--gutter)*2,1080px);margin-inline:auto}
+h1,h2,h3{margin:0;font-weight:700;overflow-wrap:break-word;min-width:0;text-wrap:balance;letter-spacing:0;line-height:1.35}
+h1{font-size:clamp(1.8rem,4vw,2.6rem)}
+h2{font-size:clamp(1.35rem,2.6vw,1.8rem)}
+h3{font-size:1.1rem}
+p{margin:0;text-wrap:pretty}
+.tc{flex:none;font-family:var(--font-mono);font-size:.8rem;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
+.hd{display:flex;gap:.9em;align-items:baseline;margin-bottom:12px}
+section{padding-block:clamp(24px,3vw,32px);border-top:1px solid var(--line)}
+section.first{border-top:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 1.4em;font:700 1rem/1 var(--font-body);text-decoration:none;border-radius:var(--radius);border:1px solid var(--line);color:var(--text);background:transparent;transition:background-color .15s ease,border-color .15s ease}
+.btn:hover{background:var(--panel-up);border-color:var(--muted)}
+.btn:active,.copybtn:active{transform:translateY(1px)}
+.copybtn:disabled{opacity:.5;cursor:default}
+.btn-main{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn-main:hover{background:var(--accent);border-color:var(--text);filter:brightness(1.06)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
+.mark{font-weight:700;text-decoration:none}
+.lang{display:inline-flex;align-items:center;min-height:44px;color:var(--muted);font-size:.9rem;text-decoration:underline;text-underline-offset:.25em;text-decoration-color:var(--line)}
+.lang:hover{color:var(--text);text-decoration-color:var(--muted)}
+.intro{padding-block:12px clamp(28px,4vw,44px)}
+.tagline{margin-top:12px;max-width:44em;font-size:1.1rem}
+.cta{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;margin-top:20px}
+.urltext{font-family:var(--font-mono);font-size:.9rem;color:var(--muted)}
+.fine{margin-top:12px;color:var(--muted);font-size:.9rem}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--col-gap);align-items:start}
+.cols3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--col-gap);align-items:start}
+.need{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.need li{padding:12px 16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
+.instrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}
+.instrow .copybtn{margin-top:0;min-height:44px}
+pre{margin:0;padding:16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;overflow-x:auto;font-variant-numeric:tabular-nums;color:var(--text)}
+pre.wrapit{white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:visible}
+.copybtn{margin-top:8px;min-height:44px;padding:0 1em;font:700 .9rem/1 var(--font-body);color:var(--text);background:transparent;border:1px solid var(--line);border-radius:var(--radius);cursor:pointer}
+.copybtn:hover{background:var(--panel-up);border-color:var(--muted)}
+.alt{margin-top:12px;color:var(--muted)}
+.step{display:grid;gap:8px;align-content:start}
+.step .n{font-family:var(--font-mono);color:var(--muted);font-size:.85rem}
+.shot{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden;margin:0}
+.shot img{width:100%}
+.card4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--col-gap) var(--col-gap)}
+.card4 .c{display:grid;gap:8px;align-content:start}
+.card4 .c .ch{display:flex;gap:.6em;align-items:baseline}
+.card4 .c .ch .n{font-family:var(--font-mono);font-size:.85rem;font-weight:400;color:var(--muted)}
+.stack{display:grid;gap:12px}
+.phones{display:grid;grid-template-columns:minmax(0,210px) minmax(0,1fr);gap:var(--col-gap);align-items:start}
+.phone .shot{border-radius:20px}
+.list{margin:0;padding-left:1.2em;display:grid;gap:8px}
+.foot{padding-block:28px clamp(40px,6vw,64px);border-top:1px solid var(--line)}
+.links{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:16px;font-size:.95rem}
+.links a{display:inline-flex;align-items:center;min-height:44px}
+.printurl{display:none}
+@media (max-width:700px){
+  .cols,.cols3,.card4,.phones{grid-template-columns:minmax(0,1fr)}
+  .phones .phone{max-width:240px}
+  .cta .btn{flex:1 1 100%}
+  .need{grid-template-columns:minmax(0,1fr)}
+  .instrow{grid-template-columns:minmax(0,1fr)}
+}
+@media print{
+  :root{--bg:#fff;--panel:#f3f5f7;--panel-up:#e9edf1;--line:#c9d1d9;--text:#14181d;--muted:#4a5560;--accent:#14181d;--accent-ink:#fff;--ok:#1b7a4b}
+  @page{size:A4;margin:11mm}
+  html{background:var(--bg)}
+  body{font-size:10pt;line-height:1.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .wrap{width:100%}
+  h1{font-size:20pt}h2{font-size:13pt}h3{font-size:10.5pt}
+  section{padding-block:8px}
+  .intro{padding-block:0 8px}
+  .step,.card4 .c,.shot,.phones,.cols>div,pre,.need li{break-inside:avoid}
+  .instrow{grid-template-columns:minmax(0,1fr)}
+  .copybtn,.lang,.top .mark,.foot .links .live{display:none}
+  .btn-main{border:1.5px solid var(--text);background:var(--bg);color:var(--text);min-height:0;padding:8px 12px}
+  .urltext{color:var(--text);font-size:10pt}
+  .cols,.cols3{gap:12px}
+  .card4{gap:8px 16px}
+  .phones{grid-template-columns:150px minmax(0,1fr);gap:16px}
+  .phone .shot img{width:150px}
+  .phones .phone{max-width:none}
+  .tagline{font-size:10.5pt}
+  .hd{margin-bottom:8px}
+  .tc{display:none}
+  pre{font-size:7.6pt;padding:8px 12px}
+  .printurl{display:inline}
+  a{text-decoration:none}
+  .foot{padding-block:8px}
+  .foot .btn{margin-right:8px}
+  .hd{break-after:avoid}
+}
+</style>
+</head>
+<body>
+
+<header class="top wrap">
+  <a class="mark" href="../">審片台</a>
+  <a class="lang" href="../en/guide/" hreflang="en" lang="en">English</a>
+</header>
+
+<main class="wrap">
+<section class="intro first">
+  <h1>審片台快速上手</h1>
+  <p class="tagline">AI 做片，你審片。點哪裡，它就改哪裡。</p>
+  <div class="cta">
+    <a class="btn btn-main" href="https://github.com/betterconnie/review-desk">到 GitHub 取得</a>
+    <span class="urltext">github.com/betterconnie/review-desk</span>
+  </div>
+  <p class="fine">免費、MIT 授權、開源</p>
+</section>
+
+<section aria-labelledby="need">
+  <div class="hd"><span class="tc" aria-hidden="true">01</span><h2 id="need">需要什麼</h2></div>
+  <ul class="need"><li>Python 3.9 以上</li><li>ffmpeg</li><li>一個 AI 代理（Claude Code、Codex 等）</li></ul>
+</section>
+
+<section aria-labelledby="inst">
+  <div class="hd"><span class="tc" aria-hidden="true">02</span><h2 id="inst">安裝</h2></div>
+  <div class="instrow"><pre id="clone" aria-label="git clone command">git clone https://github.com/betterconnie/review-desk ~/.claude/skills/review-desk</pre>
+  <button class="copybtn" type="button" data-target="clone" data-done="已複製">複製</button></div>
+  <p class="alt">或直接跟你的 AI 說：「從 github.com/betterconnie/review-desk 安裝 review-desk 這個技能」</p>
+</section>
+
+<section aria-labelledby="use">
+  <div class="hd"><span class="tc" aria-hidden="true">03</span><h2 id="use">怎麼用</h2></div>
+  <div class="cols3">
+    <div class="step"><span class="n">1</span><p>跟你的 AI 代理說：「開審片台。」它會把成片變成一個網頁，在你的瀏覽器打開。</p></div>
+    <div class="step"><span class="n">2</span><p>看片、標記、寫意見。按 <b>▶︎ 播放</b> 或拖時間軸。停在想改的地方，寫字，按 <b>在 0:19 加上意見</b>。</p>
+      <figure class="shot"><img src="../img/hero.png" width="1600" height="1669" alt="播放器，下面釘著 0:13、0:19、0:24 三則意見" loading="lazy"></figure></div>
+    <div class="step"><span class="n">3</span><p>點開 <b>我寫的意見</b>，按 <b>複製全部意見</b>，貼回對話。</p>
+      <figure class="shot"><img src="../img/comment-list.png" width="1400" height="542" alt="意見清單，每則都已存在這台裝置" loading="lazy"></figure></div>
+  </div>
+</section>
+
+<section aria-labelledby="fast">
+  <div class="hd"><span class="tc" aria-hidden="true">04</span><h2 id="fast">審片更快的四個動作</h2></div>
+  <div class="card4"><div class="c"><div class="ch"><span class="n">1</span><h3>拖時間軸，預覽每一格</h3></div><p>滑鼠移到影片上，會出現整支片的總覽時間軸。拖它就能一格一格預覽。手機上點一下畫面就會出現。</p><figure class="shot"><img src="../img/guide/overview.png" width="1000" height="587" alt="總覽時間軸，0:13 處有預覽縮圖" loading="lazy"></figure></div><div class="c"><div class="ch"><span class="n">2</span><h3>邊看邊標</h3></div><p>看到問題就按 <b>＋ 標記這裡</b>。影片繼續播，不用先寫字。</p><figure class="shot"><img src="../img/guide/mark-button.png" width="1200" height="114" alt="播放器按鈕列，包含「＋ 標記這裡」" loading="lazy"></figure></div><div class="c"><div class="ch"><span class="n">3</span><h3>看完再補字</h3></div><p>點開 <b>我寫的意見</b>，在每個標記下面補上字。按 <b>把寫好的 4 個標記一次送出</b>，或直接按 <b>複製全部意見</b>，寫好的草稿會一起帶出去。</p><figure class="shot"><img src="../img/guide/marks-filled.png" width="1000" height="697" alt="四個標記都補上字，下面有「把寫好的 4 個標記一次送出」按鈕" loading="lazy"></figure></div><div class="c"><div class="ch"><span class="n">4</span><h3>一鍵複製整份清單</h3></div><p>按 <b>複製全部意見</b>，貼上去。每一則都帶著時間、鏡頭名和素材來源。</p><pre class="wrapit" aria-label="AI 收到的清單長這樣">【v1】審片台傳來：意見 4 則；整版還沒核准。
+[0:06｜鏡頭 2〈清晨日出〉｜自製，無外部素材] 日出多停一拍
+[0:13｜鏡頭 4〈一杯咖啡的 4 分鐘〉｜自製，無外部素材] 橫條長出來太慢
+[0:19｜鏡頭 5〈店門口〉｜自製，無外部素材] 招牌的字太小
+[0:24｜鏡頭 6〈三個特色字卡〉｜自製，無外部素材] 第三張字卡晚一點出</pre></div></div>
+</section>
+
+<section class="cols" aria-labelledby="approve">
+  <div>
+    <div class="hd"><span class="tc" aria-hidden="true">05</span><h2 id="approve">核准</h2></div>
+    <p>按 <b>✓ 核准這個版本</b>，它會變成 <b>確定核准？再按一次</b>。4 秒內再按一次才生效。</p>
+    <p class="alt">出了新版本，舊版的核准不算，新版要重新核准。按錯了就按 <b>撤回核准</b>。只有你自己按的才算。</p>
+  </div>
+  <div class="stack">
+    <figure class="shot"><img src="../img/approve.png" width="900" height="237" alt="綠色的「核准這個版本」按鈕" loading="lazy"></figure>
+    <figure class="shot"><img src="../img/approved.png" width="1100" height="237" alt="核准後，旁邊有「撤回核准」按鈕" loading="lazy"></figure>
+  </div>
+</section>
+
+<section aria-labelledby="phone">
+  <div class="hd"><span class="tc" aria-hidden="true">06</span><h2 id="phone">用手機審（選用）</h2></div>
+  <div class="phones">
+    <figure class="phone"><div class="shot"><img src="../img/guide/phone-sent.png" width="600" height="1300" alt="手機上的雲端審片頁，有「傳給 AI」按鈕" loading="lazy"></div></figure>
+    <div class="stack">
+      <ol class="list"><li>先把審片台放上網：用你自己的 Netlify 網站，照 <code>cloud/README.md</code> 做。</li><li>放上去之後，用手機打開網址。點一下畫面，時間軸就會出現。</li><li>按 <b>傳給 AI</b>，再回對話跟 AI 說一聲你傳了。它不會自己被叫醒。</li><li>沒設密碼之前，拿到網址的人都看得到片，也能寫意見。</li></ol>
+      <figure class="shot" style="max-width:420px"><img src="../img/guide/home-card.png" width="700" height="276" alt="首頁卡片：寫了 3 則意見，全部已傳給 AI" loading="lazy"></figure>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="know">
+  <div class="hd"><span class="tc" aria-hidden="true">07</span><h2 id="know">要知道的事</h2></div>
+  <ul class="list"><li>影片預設留在你的電腦。審片台只開一個本機網頁，影片和意見都不會上傳。頁面只會向 Google Fonts 要字型檔。</li><li>本機模式的意見只存在那台電腦的瀏覽器。</li><li>自動偵測鏡頭看的是亮度差，亮度接近的兩個鏡頭可能切不出來。可以用 <code>--scene 0.1</code>，或自己列鏡頭清單。</li><li>目前只實際配過 Claude。意見是純文字，可以貼給任何 AI。</li></ul>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="btn btn-main" href="https://github.com/betterconnie/review-desk">到 GitHub 取得</a>
+    <span class="urltext printurl"> github.com/betterconnie/review-desk</span>
+    <div class="links">
+      <a href="https://github.com/betterconnie/review-desk">github.com/betterconnie/review-desk</a>
+      <a class="live" href="../demo/">玩線上示範片</a>
+      <a href="../">回到介紹頁</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('.copybtn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var t=document.getElementById(b.dataset.target).textContent,old=b.textContent;
+    function ok(){b.textContent=b.dataset.done;setTimeout(function(){b.textContent=old},1500)}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,function(){})}
+  });
+});
+</script>
+</body>
+</html>
