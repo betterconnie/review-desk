@@ -1,0 +1,51 @@
+[
+  {
+    "start": 0,
+    "title": "片名卡",
+    "kind": "card",
+    "how": "SVG＋CSS＋GSAP 字卡動畫",
+    "src": "自製，無外部素材"
+  },
+  {
+    "start": 3,
+    "title": "清晨日出",
+    "kind": "code",
+    "how": "SVG＋GSAP 程式動畫（HyperFrames 算圖）",
+    "src": "自製，無外部素材"
+  },
+  {
+    "start": 8,
+    "title": "手沖咖啡",
+    "kind": "code",
+    "how": "SVG＋GSAP 程式動畫（HyperFrames 算圖）",
+    "src": "自製，無外部素材"
+  },
+  {
+    "start": 12,
+    "title": "一杯咖啡的 4 分鐘",
+    "kind": "fig",
+    "how": "SVG＋GSAP 橫條圖表動畫",
+    "src": "自製，無外部素材"
+  },
+  {
+    "start": 17,
+    "title": "店門口",
+    "kind": "code",
+    "how": "SVG＋GSAP 程式動畫（HyperFrames 算圖）",
+    "src": "自製，無外部素材"
+  },
+  {
+    "start": 22,
+    "title": "三個特色字卡",
+    "kind": "card",
+    "how": "SVG＋CSS＋GSAP 字卡動畫",
+    "src": "自製，無外部素材"
+  },
+  {
+    "start": 27,
+    "title": "結尾卡",
+    "kind": "card",
+    "how": "SVG＋CSS＋GSAP 字卡動畫",
+    "src": "自製，無外部素材"
+  }
+]

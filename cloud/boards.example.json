@@ -1,0 +1,16 @@
+{
+  "site_title": "審片網站",
+  "intro": "點要審的影片。意見存在這個網站，換手機或電腦都看得到。",
+  "agent": "AI",
+  "redact_notes": [],
+  "episodes": [
+    {
+      "id": "demo",
+      "no": "第 1 支",
+      "title": "範例影片",
+      "boards": [
+        { "key": "v1", "label": "成片 v1", "src": "../review_demo", "html": "index.html", "what": "看片、留意見，按核准。" }
+      ]
+    }
+  ]
+}

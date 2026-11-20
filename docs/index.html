@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>審片台｜AI 做片，你審片</title>
+<meta name="description" content="審片台把一支成片攤成一條魚骨時間軸。你在畫面上寫意見，AI 收到的每一則都帶著時間、鏡頭和素材檔名。免費、MIT 授權。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="審片台｜AI 做片，你審片。點哪裡，它就改哪裡。">
+<meta property="og:description" content="審片台把一支成片攤成一條魚骨時間軸。你在畫面上寫意見，AI 收到的每一則都帶著時間、鏡頭和素材檔名。">
+<meta property="og:url" content="https://betterconnie.github.io/review-desk/">
+<meta property="og:image" content="https://betterconnie.github.io/review-desk/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://betterconnie.github.io/review-desk/img/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Hallmark · v2.0.0 · theme: 剪輯室暗色工作台 (by request, DESIGN.md) · genre: modern-minimal · job: try or install · shape: single column, timecode-numbered sections · hero: left-aligned head and actions over the real product screenshot · nav: wordmark only · footer: one action and the licence · signature: the real review desk in the hero with one cool glow · copy: verbatim */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V4 · weakest: H, the hero is a screenshot under a headline, not a live control; cut a decorative divider to keep the screenshot the only large object */
+/* Hallmark · waive 44c · the hero is the headline and both actions on the first screen, and the real review desk screenshot follows joined to it · moving the screenshot into the hero fails the 1920 fold (44d) */
+/* Hallmark · waive 77 · 1 分 23 秒 and 我們自己怎麼用 are short true paragraphs with the big statement and two columns · a picture of invented material would break the no-invention rule (46a) */
+/* Hallmark · dismissed 29 · one cool glow behind the review desk screenshot is required by DESIGN.md (L02) and appears once on the page */
+/* hallmark-tc: 標題不設負字距；內文 line-break: strict；中文寬度用 em */
+:root{
+  --bg:#0b0f14;
+  --panel:#131a22;
+  --panel-up:#1a232e;
+  --line:#2a3644;
+  --text:#e8edf2;
+  --muted:#93a1b0;
+  --accent:#ffd166;
+  --accent-ink:#0b0f14;
+  --ok:#4ccf8e;
+  --glow:#38c7c0;
+  --font-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --radius:10px;
+  --gutter:clamp(16px,4vw,32px);
+  --measure:34em;
+  --col-gap:clamp(24px,5vw,64px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{overflow-x:clip}
+html{background:var(--bg);color:var(--text);scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;font-family:var(--font-body);font-size:17px;line-height:1.8;font-weight:400;
+  background:var(--bg);color:var(--text);font-synthesis:none;line-break:strict;
+  caret-color:var(--accent);
+}
+::selection{background:var(--accent);color:var(--accent-ink)}
+html{scrollbar-color:var(--line) var(--bg)}
+img{display:block;max-width:100%;height:auto}
+a{color:inherit}
+code,.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+code{font-size:.92em;color:var(--text);background:var(--panel-up);border:1px solid var(--line);border-radius:6px;padding:.05em .4em}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;transition:none}
+
+.wrap{width:min(100% - var(--gutter)*2,1080px);margin-inline:auto}
+section{padding-block:clamp(56px,9vw,112px)}
+h1,h2,h3{margin:0;font-weight:700;line-height:1.3;letter-spacing:0;text-wrap:balance;overflow-wrap:break-word;min-width:0}
+h1{font-size:clamp(1.9rem,5.2vw,3.4rem);line-height:1.25;max-width:14em}
+h2{font-size:clamp(1.6rem,3.8vw,3.25rem);max-width:20em}
+h3{font-size:clamp(1.3rem,2.6vw,1.9rem)}
+p{margin:0;text-wrap:pretty}
+.copy{max-width:var(--measure)}
+.copy p+p{margin-top:1.1em}
+.hd{display:flex;gap:1em;align-items:baseline}
+.tc{flex:none;font-family:var(--font-mono);font-size:.85rem;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--col-gap)}
+.sec-head{margin-bottom:clamp(24px,4vw,40px)}
+.sec{border-top:1px solid var(--line)}
+
+/* controls */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 1.5em;
+  font:700 1rem/1 var(--font-body);text-decoration:none;border-radius:var(--radius);
+  border:1px solid var(--line);color:var(--text);background:transparent;
+  transition:background-color .15s ease,border-color .15s ease,transform .15s ease;
+}
+.btn:hover{background:var(--panel-up);border-color:var(--muted)}
+.btn:active{transform:translateY(1px)}
+.btn-main{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn-main:hover{background:var(--accent);border-color:var(--text);filter:brightness(1.06)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+
+/* header and hero */
+.top{padding-block:20px}
+.mark{font-weight:700;font-size:1.05rem;text-decoration:none}
+.hero{padding-block:clamp(28px,5vw,56px) 0}
+.stage-sec{padding-block:clamp(16px,4vw,64px) clamp(56px,8vw,96px)}
+.hero .lede{max-width:var(--measure);color:var(--muted);margin-top:20px}
+.fine{margin-top:16px;color:var(--muted);font-size:.9rem;line-height:1.7}
+.stage{max-width:880px;margin-inline:auto;position:relative;margin-top:clamp(32px,5vw,56px);isolation:isolate}
+.stage::before{
+  content:"";position:absolute;inset:-6% 4% auto;height:80%;z-index:-1;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--glow) 30%,transparent),transparent);
+  filter:blur(56px);
+}
+.shot{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden}
+.shot img{width:100%}
+@media (max-width:760px){.stage .shot{max-width:360px;margin-inline:auto}}
+.rise{animation:rise .5s ease both;animation-delay:calc(var(--i,0)*55ms)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* pain */
+.pain .quote{max-width:none;margin:0;font-size:clamp(1.6rem,4.4vw,2.6rem);line-height:1.3}
+.pain .quote .t{color:var(--accent);font-variant-numeric:tabular-nums}
+.pain .end{margin:0;font-size:clamp(1.25rem,3vw,2rem);font-weight:700;max-width:24em;line-height:1.5;text-wrap:balance}
+.pain .copy{max-width:var(--measure)}
+
+/* features */
+.feature{padding-block:clamp(36px,6vw,64px);border-top:1px solid var(--line)}
+.feature:first-of-type{border-top:0;padding-top:0}
+.feature .copy{margin-top:16px}
+.feature.pair{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--col-gap);align-items:center}
+.feature.pair.flip .text{order:2}
+.stack{display:grid;gap:16px}
+.fig{margin:0}
+.fig figcaption{margin-top:8px;color:var(--muted);font-size:.9rem;line-height:1.6}
+.feature.first .card{max-width:420px;justify-self:end}
+.feature.first .wide{grid-column:1/-1}
+.scroll{overflow-x:auto}
+.swipe{display:none;grid-column:1/-1;margin:0;color:var(--muted);font-size:.9rem;line-height:1.6}
+.export{
+  margin:24px 0 0;max-width:46em;padding:20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);
+  font-family:var(--font-mono);font-size:.88rem;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere;
+  font-variant-numeric:tabular-nums;color:var(--text);
+}
+.export .ok{color:var(--ok)}
+
+/* steps */
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--col-gap)}
+.steps li{display:grid;gap:8px;padding-top:20px;border-top:1px solid var(--line);align-content:start}
+.steps .n{font-family:var(--font-mono);color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums}
+
+/* phone */
+.phones{display:grid;grid-template-columns:repeat(3,minmax(0,300px));justify-content:space-between;gap:var(--col-gap)}
+.phone{margin:0}
+.phone .shot{border-radius:22px}
+
+/* faq */
+.faq{margin:0}
+.faq div{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--col-gap);padding-block:20px;border-top:1px solid var(--line)}
+.faq dt{font-weight:700}
+.faq dd{text-wrap:pretty;margin:0;color:var(--muted)}
+
+/* footer */
+.foot{padding-block:clamp(56px,9vw,104px);border-top:1px solid var(--line)}
+.foot .licence{margin-top:20px;color:var(--muted);font-size:.9rem}
+
+@media (max-width:760px){
+  body{font-size:16px}
+  .feature.pair{grid-template-columns:minmax(0,1fr)}
+  .feature.pair.flip .text{order:0}
+  .actions .btn{flex:1 1 100%}
+  .steps{grid-template-columns:minmax(0,1fr)}
+  .faq div{grid-template-columns:minmax(0,1fr)}
+  .two{grid-template-columns:minmax(0,1fr)}
+  .phone.third{display:none}
+  .phones{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .feature.first .card{justify-self:start}
+  .scroll img{width:760px;max-width:none}
+  .swipe{display:block}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .rise{animation:none}
+  .btn{transition:none}
+}
+</style>
+</head>
+<body>
+
+<header class="top wrap">
+  <a class="mark" href="./">審片台</a>
+</header>
+
+<main>
+<section class="hero wrap">
+  <h1 class="rise" style="--i:0">AI 做片，你審片。<br>點哪裡，它就改哪裡。</h1>
+  <p class="lede rise" style="--i:1">審片台把一支成片攤成一條魚骨時間軸。你在畫面上寫意見，AI 收到的每一則都帶著時間、鏡頭和素材檔名。</p>
+  <div class="actions rise" style="--i:2">
+    <a class="btn btn-main" href="https://github.com/betterconnie/review-desk">到 GitHub 安裝</a>
+    <a class="btn" href="./demo/">先玩示範片</a>
+  </div>
+  <p class="fine rise" style="--i:3">免費、MIT 授權。片子留在你自己的電腦。</p>
+</section>
+
+<section class="stage-sec wrap">
+  <div class="stage rise" style="--i:4">
+    <div class="shot"><picture><source media="(max-width:760px)" srcset="img/phone-list.png" width="600" height="1300"><img src="img/hero.png" width="1600" height="1669" alt="審片台的畫面：示範片〈山頂咖啡〉的播放器，下面是釘在 0:13、0:19、0:24 的三則意見"></picture></div>
+  </div>
+</section>
+
+<section class="sec pain" aria-labelledby="pain">
+  <div class="wrap">
+    <div class="hd sec-head"><span class="tc" aria-hidden="true">00:01</span><h2 id="pain" class="quote">「<span class="t">1 分 23 秒</span>那邊怪怪的」</h2></div>
+    <div class="two">
+    <div class="copy">
+      <p>你看完 AI 做的片，回對話打了這句。它改了 1 分 20 秒的字卡，你說的是 1 分 25 秒的轉場。第二輪你把時間寫得更細，它把整段重做，原本沒問題的鏡頭也換掉了。</p>
+    </div>
+    <p class="end">片子是一格一格的，對話框只有一行。</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" aria-label="功能">
+  <div class="wrap">
+    <article class="feature pair first">
+      <div class="text">
+        <div class="hd"><span class="tc" aria-hidden="true">00:02</span><h3>每一個鏡頭攤開來看</h3></div>
+        <div class="copy"><p>魚骨時間軸把整支片排成一列縮圖。停在哪一鏡，旁邊就寫這一鏡多長、怎麼做的、素材從哪來。</p></div>
+      </div>
+      <figure class="fig shot card"><img src="img/shot-card.png" width="836" height="663" alt="鏡頭資訊卡：店門口，0:17.0 到 0:22.0，程式動畫，來源自製，停留 5.0 秒" loading="lazy"></figure>
+      <figure class="fig shot wide scroll"><img src="img/timeline.png" width="1800" height="542" alt="魚骨時間軸：畫面縮圖排在上方，聲音波形在中間，字幕在下方，黃色標記是已寫下的意見" loading="lazy"></figure>
+      <p class="swipe">← 左右滑動看整條時間軸 →</p>
+    </article>
+
+    <article class="feature pair">
+      <div class="text">
+        <div class="hd"><span class="tc" aria-hidden="true">00:03</span><h3>看到哪，寫到哪</h3></div>
+        <div class="copy"><p>按「＋標記這裡」，意見就釘在那一秒。打的字當下就存，重新整理也還在。</p></div>
+      </div>
+      <div class="stack">
+        <figure class="fig shot"><img src="img/comment-box.png" width="1400" height="160" alt="意見欄：輸入框、類別按鈕，和「在 0:19 加上意見」按鈕" loading="lazy"></figure>
+        <figure class="fig shot"><img src="img/comment-list.png" width="1400" height="542" alt="已寫下的三則意見，每則都有時間、類別和鏡頭名" loading="lazy"></figure>
+      </div>
+    </article>
+
+    <article class="feature">
+      <div class="text">
+        <div class="hd"><span class="tc" aria-hidden="true">00:04</span><h3>整份交給 AI</h3></div>
+        <div class="copy"><p>按一顆鈕，全部意見變成一份清單，每則都有時間、鏡頭名、素材檔名。AI 照清單改，沒被點到的鏡頭不動。</p></div>
+      </div>
+      <pre class="export" aria-label="審片台匯出的意見清單">【v1】審片台傳來：意見 3 則；整版還沒核准。
+[0:13｜鏡頭 4〈一杯咖啡的 4 分鐘〉｜自製，無外部素材] 橫條長出來太慢，快一倍
+[0:19｜鏡頭 5〈店門口〉｜自製，無外部素材] 招牌的字太小
+[0:24｜鏡頭 6〈三個特色字卡〉｜自製，無外部素材] 第三張字卡晚一點出</pre>
+    </article>
+
+    <article class="feature pair">
+      <div class="text">
+        <div class="hd"><span class="tc" aria-hidden="true">00:05</span><h3>你按核准才算過關</h3></div>
+        <div class="copy"><p>「核准這個版本」要按兩次才生效。換了新版本，舊的核准自動不算。</p></div>
+      </div>
+      <div class="stack">
+        <figure class="fig shot"><img src="img/approve.png" width="900" height="237" alt="綠色的「核准這個版本」按鈕" loading="lazy"></figure>
+        <figure class="fig shot"><img src="img/approved.png" width="1100" height="237" alt="核准後顯示「你已核准這個版本」，旁邊有「撤回核准」按鈕" loading="lazy"></figure>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="sec" aria-labelledby="start">
+  <div class="wrap">
+    <div class="hd sec-head"><span class="tc" aria-hidden="true">00:06</span><h2 id="start">怎麼開始</h2></div>
+    <ol class="steps">
+      <li><span class="n">1</span><p>跟你的 AI 代理說：「裝 <code>review-desk</code> 這個技能。」</p></li>
+      <li><span class="n">2</span><p>片子做好後說：「開審片台。」它會把成片變成一個網頁，在你的瀏覽器打開。</p></li>
+      <li><span class="n">3</span><p>看片、寫意見、按「複製全部意見」，貼回對話。</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="sec" aria-labelledby="mobile">
+  <div class="wrap">
+    <div class="hd sec-head"><span class="tc" aria-hidden="true">00:07</span><h2 id="mobile">手機也能審</h2></div>
+    <div class="phones">
+      <figure class="phone"><div class="shot"><img src="img/phone-player.png" width="600" height="1300" alt="手機上的審片台：播放器、控制按鈕和意見欄" loading="lazy"></div></figure>
+      <figure class="phone"><div class="shot"><img src="img/phone-list.png" width="600" height="1300" alt="手機上的審片台：三則意見的清單和核准按鈕" loading="lazy"></div></figure>
+      <figure class="phone third"><div class="shot"><img src="img/phone-timeline.png" width="600" height="1300" alt="手機上的審片台：魚骨時間軸和鏡頭縮圖" loading="lazy"></div></figure>
+    </div>
+  </div>
+</section>
+
+<section class="sec" aria-label="實績與接案">
+  <div class="wrap two">
+    <div>
+      <div class="hd sec-head"><span class="tc" aria-hidden="true">00:08</span><h2 id="own">我們自己怎麼用</h2></div>
+      <div class="copy">
+        <p>這套是做兩個 YouTube 頻道時逼出來的。其中一集的第 2 版，審片的人在片上標了 10 個時間點，第 3 版照這 10 則改完。審片的人全程用手機。</p>
+      </div>
+    </div>
+    <div>
+      <div class="hd sec-head"><span class="tc" aria-hidden="true">00:09</span><h2 id="pro">給接案的人</h2></div>
+      <div class="copy">
+        <p>把審片台放上網，傳網址給客戶。客戶用手機打開就能看片、點畫面留言、按核准，不用註冊。意見會同步回來，你的 AI 代理直接讀。這一段要自己架 Netlify，照 <code>cloud/README.md</code> 做。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" aria-labelledby="faq">
+  <div class="wrap">
+    <div class="hd sec-head"><span class="tc" aria-hidden="true">00:10</span><h2 id="faq">常見問題</h2></div>
+    <dl class="faq">
+      <div><dt>要錢嗎？</dt><dd>不用。MIT 授權。放上網的話，用的是你自己的 Netlify 免費額度。</dd></div>
+      <div><dt>片子會上傳嗎？</dt><dd>不會。預設只在你電腦上開一個本機網頁。</dd></div>
+      <div><dt>需要什麼？</dt><dd>Python 3 和 ffmpeg。大多數做影片的電腦都已經有。</dd></div>
+      <div><dt>沒有分鏡表可以用嗎？</dt><dd>可以。它會自己偵測鏡頭切換點。有分鏡表的話，每一鏡會多顯示怎麼做的、素材來源。</dd></div>
+      <div><dt>只能配 Claude 嗎？</dt><dd>不限。意見是一段文字，貼給哪個 AI 都行。</dd></div>
+    </dl>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="btn btn-main" href="https://github.com/betterconnie/review-desk">到 GitHub 安裝</a>
+    <p class="licence">MIT 授權</p>
+  </div>
+</footer>
+
+</body>
+</html>
