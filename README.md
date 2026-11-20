@@ -1,12 +1,14 @@
 # 審片台 Review Desk
 
+[English](README.en.md)
+
 **AI 做片，你審片。點哪裡，它就改哪裡。**
 
 審片台是一個給 AI 代理（Claude Code、Codex 等）用的技能：把一支成片變成一個審片網頁。你在畫面上寫意見，AI 收到的每一則都帶著時間、鏡頭名和素材來源，只改你點到的那一鏡。
 
 ![審片台畫面](docs/img/hero.png)
 
-[介紹網頁與線上示範](https://betterconnie.github.io/review-desk/)　｜　[操作說明](references/操作說明.md)　｜　[English](#english)
+[介紹網頁與線上示範](https://betterconnie.github.io/review-desk/)　｜　[操作說明](references/操作說明.md)　｜　[English](README.en.md)
 
 ## 它解決什麼
 
@@ -109,26 +111,4 @@ cd review_demo && python3 -m http.server 8787 --bind 127.0.0.1
 
 ---
 
-## English
-
-**Review Desk** is a skill for AI coding agents (Claude Code, Codex, and others) that turns a finished video into a single-page review board.
-
-When an agent makes a video for you, telling it what to fix is the slow part. "Something's off around 1:23" gets the wrong shot changed. Review Desk lays the film out as a timeline of shots. You pin comments to exact moments, and the agent receives a list where every comment carries the timestamp, the shot name, and the source file.
-
-- Shot timeline with thumbnails, audio level, and subtitles
-- Per-shot details: duration, how it was made, where the asset came from
-- Pin comments to any second; drafts are saved as you type
-- One click exports every comment as text for the agent
-- Explicit approval per version (double-confirm; a new version resets it)
-- Works on phones
-- Local by default: nothing is uploaded
-
-Requires Python 3.9+ and ffmpeg. No packages to install.
-
-```bash
-git clone https://github.com/betterconnie/review-desk ~/.claude/skills/review-desk
-python3 ~/.claude/skills/review-desk/scripts/make_board.py your-video.mp4 --out review_v1 --ver v1
-cd review_v1 && python3 -m http.server 8787 --bind 127.0.0.1
-```
-
-The interface is in Traditional Chinese. MIT licensed.
+English version: [README.en.md](README.en.md)

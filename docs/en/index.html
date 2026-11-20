@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review Desk | AI makes the video. You review it.</title>
+<meta name="description" content="Review Desk lays a finished cut out as a timeline of shots. You write notes on the frame, and your AI gets each one with its timestamp, shot name and source file. Free, MIT licensed.">
+<link rel="alternate" hreflang="zh-Hant" href="https://betterconnie.github.io/review-desk/">
+<link rel="alternate" hreflang="en" href="https://betterconnie.github.io/review-desk/en/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Review Desk | AI makes the video. You review it.">
+<meta property="og:description" content="Review Desk lays a finished cut out as a timeline of shots. You write notes on the frame, and your AI gets each one with its timestamp, shot name and source file.">
+<meta property="og:url" content="https://betterconnie.github.io/review-desk/en/">
+<meta property="og:image" content="https://betterconnie.github.io/review-desk/img/en/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://betterconnie.github.io/review-desk/img/en/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Hallmark · v2.0.0 · theme: dark cutting-room workbench (by request, DESIGN.md) · genre: modern-minimal · job: try or install · shape: single column, timecode-numbered sections · hero: left-aligned head and actions over the real product screenshot · nav: wordmark and a language link · footer: one action and the licence · signature: the real review desk in the hero with one cool glow · copy: verbatim */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V4 · weakest: H, the hero is a screenshot under a headline, not a live control; cut a decorative divider to keep the screenshot the only large object */
+/* Hallmark · waive 44c · the hero is the headline, subhead and both actions on the first screen, and the real review desk screenshot follows joined to it · moving the screenshot into the hero fails the 1920 fold (44d) */
+/* Hallmark · waive 77 · both sections are short true paragraphs of text with one big statement or two columns · a picture of invented notes or an invented video would break the no-invention rule (46a) */
+/* Hallmark · dismissed 29 · one cool glow behind the review desk screenshot is required by DESIGN.md (L02) and appears once on the page */
+:root{
+  --bg:#0b0f14;
+  --panel:#131a22;
+  --panel-up:#1a232e;
+  --line:#2a3644;
+  --text:#e8edf2;
+  --muted:#93a1b0;
+  --accent:#ffd166;
+  --accent-ink:#0b0f14;
+  --ok:#4ccf8e;
+  --glow:#38c7c0;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --radius:10px;
+  --gutter:clamp(16px,4vw,32px);
+  --measure:34em;
+  --col-gap:clamp(24px,5vw,64px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{overflow-x:clip}
+html{background:var(--bg);color:var(--text);scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;font-family:var(--font-body);font-size:17px;line-height:1.65;font-weight:400;
+  background:var(--bg);color:var(--text);font-synthesis:none;
+  caret-color:var(--accent);
+}
+::selection{background:var(--accent);color:var(--accent-ink)}
+html{scrollbar-color:var(--line) var(--bg)}
+img{display:block;max-width:100%;height:auto}
+a{color:inherit}
+code,.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+code{white-space:nowrap;font-size:.92em;color:var(--text);background:var(--panel-up);border:1px solid var(--line);border-radius:6px;padding:.05em .4em}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;transition:none}
+
+.wrap{width:min(100% - var(--gutter)*2,1080px);margin-inline:auto}
+section{padding-block:clamp(56px,9vw,112px)}
+h1,h2,h3{margin:0;font-weight:700;line-height:1.15;letter-spacing:-.015em;text-wrap:balance;overflow-wrap:break-word;min-width:0}
+h1{font-size:clamp(1.85rem,3.8vw,2.75rem);line-height:1.15;letter-spacing:-.02em;max-width:none}
+h2{font-size:clamp(1.7rem,3.8vw,3.25rem);max-width:16em}
+h3{font-size:clamp(1.3rem,2.6vw,1.9rem);line-height:1.2}
+p{margin:0;text-wrap:pretty}
+.copy{max-width:var(--measure)}
+.copy p+p{margin-top:1.1em}
+.hd{display:flex;gap:1em;align-items:baseline}
+.tc{flex:none;font-family:var(--font-mono);font-size:.85rem;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--col-gap)}
+.sec-head{margin-bottom:clamp(24px,4vw,40px)}
+.sec{border-top:1px solid var(--line)}
+
+/* controls */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 1.5em;
+  font:700 1rem/1 var(--font-body);text-decoration:none;border-radius:var(--radius);
+  border:1px solid var(--line);color:var(--text);background:transparent;
+  transition:background-color .15s ease,border-color .15s ease,transform .15s ease;
+}
+.btn:hover{background:var(--panel-up);border-color:var(--muted)}
+.btn:active{transform:translateY(1px)}
+.btn-main{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn-main:hover{background:var(--accent);border-color:var(--text);filter:brightness(1.06)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+
+/* header and hero */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
+.lang{display:inline-flex;align-items:center;min-height:44px;color:var(--muted);font-size:.9rem;text-decoration:underline;text-underline-offset:.25em;text-decoration-color:var(--line)}
+.lang:hover{color:var(--text);text-decoration-color:var(--muted)}
+.mark{font-weight:700;font-size:1.05rem;text-decoration:none}
+.hero{padding-block:clamp(28px,5vw,56px) 0}
+.stage-sec{padding-block:clamp(16px,4vw,64px) clamp(56px,8vw,96px)}
+.hero .lede{max-width:var(--measure);color:var(--muted);margin-top:20px}
+.fine{margin-top:16px;color:var(--muted);font-size:.9rem;line-height:1.7}
+.stage{max-width:880px;margin-inline:auto;position:relative;margin-top:clamp(32px,5vw,56px);isolation:isolate}
+.stage::before{
+  content:"";position:absolute;inset:-6% 4% auto;height:80%;z-index:-1;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--glow) 30%,transparent),transparent);
+  filter:blur(56px);
+}
+.shot{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden}
+.shot img{width:100%}
+@media (max-width:760px){.stage .shot{max-width:360px;margin-inline:auto}}
+.rise{animation:rise .5s ease both;animation-delay:calc(var(--i,0)*55ms)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* pain */
+.pain .quote{max-width:none;margin:0;font-size:clamp(1.6rem,4.4vw,2.6rem);line-height:1.15}
+.pain .quote .t{color:var(--accent);font-variant-numeric:tabular-nums}
+.pain .end{margin:0;font-size:clamp(1.25rem,3vw,2rem);font-weight:700;max-width:20em;line-height:1.35;text-wrap:balance}
+.pain .copy{max-width:var(--measure)}
+
+/* features */
+.feature{padding-block:clamp(36px,6vw,64px);border-top:1px solid var(--line)}
+.feature:first-of-type{border-top:0;padding-top:0}
+.feature .copy{margin-top:16px}
+.feature.pair{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--col-gap);align-items:center}
+.feature.pair.flip .text{order:2}
+.stack{display:grid;gap:16px}
+.fig{margin:0}
+.fig figcaption{margin-top:8px;color:var(--muted);font-size:.9rem;line-height:1.6}
+.feature.first .card{max-width:420px;justify-self:end}
+.feature.first .wide{grid-column:1/-1}
+.scroll{overflow-x:auto}
+.swipe{display:none;grid-column:1/-1;margin:0;color:var(--muted);font-size:.9rem;line-height:1.6}
+.export{
+  margin:24px 0 0;max-width:none;padding:20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);
+  font-family:var(--font-mono);font-size:.82rem;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;
+  font-variant-numeric:tabular-nums;color:var(--text);
+}
+.export .ok{color:var(--ok)}
+
+/* steps */
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--col-gap)}
+.steps li{display:grid;gap:8px;padding-top:20px;border-top:1px solid var(--line);align-content:start}
+.steps .n{font-family:var(--font-mono);color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums}
+
+/* phone */
+.phones{display:grid;grid-template-columns:repeat(3,minmax(0,300px));justify-content:space-between;gap:var(--col-gap)}
+.phone{margin:0}
+.phone .shot{border-radius:22px}
+
+/* faq */
+.faq{margin:0}
+.faq div{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--col-gap);padding-block:20px;border-top:1px solid var(--line)}
+.faq dt{font-weight:700}
+.faq dd{text-wrap:pretty;margin:0;color:var(--muted)}
+
+/* footer */
+.foot{padding-block:clamp(56px,9vw,104px);border-top:1px solid var(--line)}
+.foot .licence{margin-top:20px;color:var(--muted);font-size:.9rem}
+
+@media (max-width:760px){
+  body{font-size:16px}
+  .feature.pair{grid-template-columns:minmax(0,1fr)}
+  .feature.pair.flip .text{order:0}
+  .actions .btn{flex:1 1 100%}
+  .steps{grid-template-columns:minmax(0,1fr)}
+  .faq div{grid-template-columns:minmax(0,1fr)}
+  .two{grid-template-columns:minmax(0,1fr)}
+  .phone.third{display:none}
+  .phones{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .feature.first .card{justify-self:start}
+  .scroll img{width:760px;max-width:none}
+  .swipe{display:block}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .rise{animation:none}
+  .btn{transition:none}
+}
+</style>
+</head>
+<body>
+
+<header class="top wrap">
+  <a class="mark" href="./">Review Desk</a>
+  <a class="lang" href="../" hreflang="zh-Hant" lang="zh-Hant">繁體中文</a>
+</header>
+
+<main>
+<section class="hero wrap">
+  <h1 class="rise" style="--i:0">AI makes the video. You review it.<br>Point at a shot and that’s the one it fixes.</h1>
+  <p class="lede rise" style="--i:1">Review Desk lays a finished cut out as a timeline of shots. You write notes on the frame, and your AI gets each one with its timestamp, shot name and source file.</p>
+  <div class="actions rise" style="--i:2">
+    <a class="btn btn-main" href="https://github.com/betterconnie/review-desk">Install from GitHub</a>
+    <a class="btn" href="./demo/">Try the demo</a>
+  </div>
+  <p class="fine rise" style="--i:3">Free, MIT licensed. Your video stays on your computer.</p>
+</section>
+
+<section class="stage-sec wrap">
+  <div class="stage rise" style="--i:4">
+    <div class="shot"><picture><source media="(max-width:760px)" srcset="../img/en/phone-list.png" width="600" height="1300"><img src="../img/en/hero.png" width="1600" height="1669" alt="Review Desk: the player showing the demo video Summit Coffee, with three notes pinned at 0:13, 0:19 and 0:24 below it"></picture></div>
+  </div>
+</section>
+
+<section class="sec pain" aria-labelledby="pain">
+  <div class="wrap">
+    <div class="hd sec-head"><span class="tc" aria-hidden="true">00:01</span><h2 id="pain" class="quote">“Something’s off around <span class="t">1:23</span>”</h2></div>
+    <div class="two">
+    <div class="copy">
+      <p>You watch the cut your AI made and type that into the chat. It changes the title card at 1:20. You meant the transition at 1:25. You try again with more detail and it rebuilds the whole section, including the shots that were fine.</p>
+    </div>
+    <p class="end">A video is made of frames. A chat box is one line.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" aria-label="Features">
+  <div class="wrap">
+    <article class="feature pair first">
+      <div class="text">
+        <div class="hd"><span class="tc" aria-hidden="true">00:02</span><h3>Every shot, laid out</h3></div>
+        <div class="copy"><p>The shot timeline shows the whole film as a row of thumbnails. Stop on any shot and it tells you how long it is, how it was made and where the asset came from.</p></div>
+      </div>
+      <figure class="fig shot card"><img src="../img/en/shot-card.png" width="836" height="752" alt="Shot info card: Storefront, 0:17.0 to 0:22.0, code animation, original with no external assets, 5.0 seconds" loading="lazy"></figure>
+      <figure class="fig shot wide scroll"><img src="../img/en/timeline.png" width="1800" height="542" alt="The shot timeline: thumbnails above the line, the audio waveform in the middle, subtitles below, and yellow markers where notes are pinned" loading="lazy"></figure>
+      <p class="swipe">← Swipe sideways to see the whole timeline →</p>
+    </article>
+
+    <article class="feature pair">
+      <div class="text">
+        <div class="hd"><span class="tc" aria-hidden="true">00:03</span><h3>Write where you’re looking</h3></div>
+        <div class="copy"><p>Hit “Mark here” and your note is pinned to that second. What you type is saved as you type. Reload the page and it’s still there.</p></div>
+      </div>
+      <div class="stack">
+        <figure class="fig shot"><img src="../img/en/comment-box.png" width="1400" height="160" alt="The comment box: a text field, category buttons and an Add comment at 0:19 button" loading="lazy"></figure>
+        <figure class="fig shot"><img src="../img/en/comment-list.png" width="1400" height="542" alt="Three saved comments, each with its time, category and shot name" loading="lazy"></figure>
+      </div>
+    </article>
+
+    <article class="feature">
+      <div class="text">
+        <div class="hd"><span class="tc" aria-hidden="true">00:04</span><h3>Hand the whole list to your AI</h3></div>
+        <div class="copy"><p>One button turns every note into a list. Each line has the time, the shot name and the source file. Your AI works down the list and leaves the other shots alone.</p></div>
+      </div>
+      <pre class="export" aria-label="The comment list Review Desk exports">[v1] From Review Desk: 3 comments; version not approved yet.
+[0:13 | Shot 4 "4 minutes in a cup" | Original, no external assets] The bars grow too slowly. Make it twice as fast.
+[0:19 | Shot 5 "Storefront" | Original, no external assets] The sign is too small
+[0:24 | Shot 6 "Three reasons" | Original, no external assets] Bring the third card in a little later</pre>
+    </article>
+
+    <article class="feature pair">
+      <div class="text">
+        <div class="hd"><span class="tc" aria-hidden="true">00:05</span><h3>It isn’t done until you approve</h3></div>
+        <div class="copy"><p>“Approve this version” takes two clicks. When a new version comes in, the old approval stops counting.</p></div>
+      </div>
+      <div class="stack">
+        <figure class="fig shot"><img src="../img/en/approve.png" width="1320" height="236" alt="The green Approve this version button" loading="lazy"></figure>
+        <figure class="fig shot"><img src="../img/en/approved.png" width="1450" height="237" alt="After approval: You approved this version, with an Undo approval button" loading="lazy"></figure>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="sec" aria-labelledby="start">
+  <div class="wrap">
+    <div class="hd sec-head"><span class="tc" aria-hidden="true">00:06</span><h2 id="start">Get started</h2></div>
+    <ol class="steps">
+      <li><span class="n">1</span><p>Tell your AI agent: “Install the <code>review-desk</code> skill.”</p></li>
+      <li><span class="n">2</span><p>When the video is ready, say: “Open the review desk.” It turns the cut into a web page and opens it in your browser.</p></li>
+      <li><span class="n">3</span><p>Watch, write notes, hit “Copy all comments” and paste them back into the chat.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="sec" aria-labelledby="mobile">
+  <div class="wrap">
+    <div class="hd sec-head"><span class="tc" aria-hidden="true">00:07</span><h2 id="mobile">Review on your phone</h2></div>
+    <div class="phones">
+      <figure class="phone"><div class="shot"><img src="../img/en/phone-player.png" width="600" height="1300" alt="Review Desk on a phone: the player, controls and comment box" loading="lazy"></div></figure>
+      <figure class="phone"><div class="shot"><img src="../img/en/phone-list.png" width="600" height="1300" alt="Review Desk on a phone: the three comments and the approve button" loading="lazy"></div></figure>
+      <figure class="phone third"><div class="shot"><img src="../img/en/phone-timeline.png" width="600" height="1300" alt="Review Desk on a phone: the shot timeline and thumbnails" loading="lazy"></div></figure>
+    </div>
+  </div>
+</section>
+
+<section class="sec" aria-label="How we use it and client work">
+  <div class="wrap two">
+    <div>
+      <div class="hd sec-head"><span class="tc" aria-hidden="true">00:08</span><h2 id="own">How we use it</h2></div>
+      <div class="copy">
+        <p>We built this while making two YouTube channels. On one episode, the reviewer pinned 10 notes on version 2, and version 3 fixed those 10. The reviewer did all of it on a phone.</p>
+      </div>
+    </div>
+    <div>
+      <div class="hd sec-head"><span class="tc" aria-hidden="true">00:09</span><h2 id="pro">For client work</h2></div>
+      <div class="copy">
+        <p>Put a review desk online and send the link. Your client opens it on a phone, watches, pins notes and approves. They don’t need an account. The notes sync back and your AI agent reads them. This part needs your own Netlify site. Follow <code>cloud/README.en.md</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" aria-labelledby="faq">
+  <div class="wrap">
+    <div class="hd sec-head"><span class="tc" aria-hidden="true">00:10</span><h2 id="faq">FAQ</h2></div>
+    <dl class="faq">
+      <div><dt>Does it cost anything?</dt><dd>No. It’s MIT licensed. If you host it, you use your own Netlify free tier.</dd></div>
+      <div><dt>Is my video uploaded?</dt><dd>No. By default it opens a local page on your own computer.</dd></div>
+      <div><dt>What do I need?</dt><dd>Python 3 and ffmpeg. Most video machines already have both.</dd></div>
+      <div><dt>What if I don’t have a shot list?</dt><dd>It detects the cuts on its own. With a shot list, each shot also shows how it was made and its source.</dd></div>
+      <div><dt>Does it only work with Claude?</dt><dd>No. The notes are plain text. Paste them into any AI.</dd></div>
+    </dl>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="btn btn-main" href="https://github.com/betterconnie/review-desk">Install from GitHub</a>
+    <p class="licence">MIT licensed</p>
+  </div>
+</footer>
+
+</body>
+</html>

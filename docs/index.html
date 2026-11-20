@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>審片台｜AI 做片，你審片</title>
 <meta name="description" content="審片台把一支成片攤成一條魚骨時間軸。你在畫面上寫意見，AI 收到的每一則都帶著時間、鏡頭和素材檔名。免費、MIT 授權。">
+<link rel="alternate" hreflang="zh-Hant" href="https://betterconnie.github.io/review-desk/">
+<link rel="alternate" hreflang="en" href="https://betterconnie.github.io/review-desk/en/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="審片台｜AI 做片，你審片。點哪裡，它就改哪裡。">
 <meta property="og:description" content="審片台把一支成片攤成一條魚骨時間軸。你在畫面上寫意見，AI 收到的每一則都帶著時間、鏡頭和素材檔名。">
@@ -88,7 +90,9 @@ p{margin:0;text-wrap:pretty}
 .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
 
 /* header and hero */
-.top{padding-block:20px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
+.lang{display:inline-flex;align-items:center;min-height:44px;color:var(--muted);font-size:.9rem;text-decoration:underline;text-underline-offset:.25em;text-decoration-color:var(--line)}
+.lang:hover{color:var(--text);text-decoration-color:var(--muted)}
 .mark{font-weight:700;font-size:1.05rem;text-decoration:none}
 .hero{padding-block:clamp(28px,5vw,56px) 0}
 .stage-sec{padding-block:clamp(16px,4vw,64px) clamp(56px,8vw,96px)}
@@ -177,6 +181,7 @@ p{margin:0;text-wrap:pretty}
 
 <header class="top wrap">
   <a class="mark" href="./">審片台</a>
+  <a class="lang" href="./en/" hreflang="en" lang="en">English</a>
 </header>
 
 <main>

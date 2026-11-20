@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Review Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;700&display=swap">
+<style>
+/* Layout: a dark editing-room workbench. Left: player, whole-film overview, nearby shots, shot timeline. Right: details for this moment and the comment panel. On phones it stacks into one column with the player pinned to the top. */
+:root{
+  color-scheme:dark;
+  --bg:#0b0f14; --panel:#131a22; --panel2:#1a232e; --line:#2a3644; --fg:#e8edf2; --dim:#93a1b0; --accent:#ffd166;
+  --aiv:#ff5fa2; --aii:#ff9ac4; --realv:#2fe0a0; --real:#4ccf8e; --fig:#5fb4e8; --photo:#38c7c0; --b3d:#f0b545; --bvid:#ff8a3d; --code:#b18cff; --card:#7d8896; --warn:#ff7b6b;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--sans);font-size:14px;line-height:1.55;padding-block:12px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+*{box-sizing:border-box}
+button{white-space:nowrap;font:inherit;color:inherit;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--dim)} button:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin-bottom:10px}
+h1{font-size:18px;font-weight:700;margin:0} header .hint{color:var(--dim);font-size:12.5px}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:16px;align-items:start}
+.left{display:flex;flex-direction:column;gap:12px;min-width:0}
+.right{display:flex;flex-direction:column;gap:12px;min-width:0;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+.lab{font-size:11.5px;letter-spacing:.08em;color:var(--dim);margin-bottom:6px}
+/* Player */
+.player{background:#000;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.screen{position:relative;aspect-ratio:16/9;max-height:52vh;margin:0 auto;background:#000;cursor:pointer;max-width:100%}
+.screen video,.screen .pv{position:absolute;inset:0;width:100%;height:100%}
+.pv{background-size:1500% 1000%;background-repeat:no-repeat;image-rendering:auto}
+.pvtag{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.7);border:1px solid var(--accent);color:var(--accent);font-size:11.5px;padding:1px 7px;border-radius:4px}
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px;background:var(--panel)}
+.ctl .time{margin-left:auto;font-size:13px}
+#play{min-width:74px;background:var(--accent);color:#1a1300;border-color:var(--accent);font-weight:700}
+/* Whole-film overview: inside the player, below the buttons, so it can be dragged without scrolling */
+.ovbar{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:22px 14px 10px;background:linear-gradient(transparent,rgba(0,0,0,.75));opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;cursor:default}
+.screen:hover .ovbar,.ovbar.on,.screen:focus-within .ovbar{opacity:1;transform:none}
+.ovbar .ov{margin-top:0}
+.hov{position:absolute;bottom:52px;width:200px;margin-left:-100px;display:none;pointer-events:none;background:#000;border:2px solid #fff;border-radius:6px;overflow:hidden}
+.hov.on{display:block}.hth{aspect-ratio:16/9;background-size:1500% 1000%;background-repeat:no-repeat}.htm{text-align:center;font-size:12px;padding:2px 0;background:rgba(0,0,0,.8)}
+
+.ov{position:relative;height:30px;background:var(--panel2);border-radius:4px;cursor:pointer;touch-action:none;margin-top:16px}
+.ov i{position:absolute;top:6px;bottom:0;display:block;border-right:1px solid var(--bg)}
+.ov .chm{position:absolute;top:0;bottom:0;width:1px;background:var(--fg);opacity:.55}
+.ov .pin{position:absolute;top:-13px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.ov .ph{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:#fff}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px;font-size:12px;color:var(--dim)}
+.legend b{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.legend span span{color:var(--fg)}
+/* Nearby shots */
+.near{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.near .c{background:var(--panel2);border:1px solid var(--line);border-radius:6px;overflow:hidden;cursor:pointer;min-width:0;border-top:3px solid var(--k)}
+.near .c.cur{outline:2px solid #fff}
+.near .c.none{visibility:hidden}
+.near .th{aspect-ratio:16/9;background-size:1500% 1000%;background-repeat:no-repeat}
+.near .tx{padding:3px 6px 5px;font-size:11.5px;line-height:1.35}
+.near .tx div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .near .tx .m{color:var(--dim);font-size:10.5px}
+/* Shot timeline */
+.fishwrap{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.fishwrap .now{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;z-index:5;pointer-events:none}
+.fishwrap .now::after{content:"";position:absolute;left:-5px;top:0;border:6px solid transparent;border-top-color:#fff}
+.lanes{position:absolute;left:8px;z-index:6;font-size:10.5px;letter-spacing:.1em;color:var(--dim);pointer-events:none}
+.lanes span{position:absolute;left:0;background:var(--panel);padding:0 5px;border-radius:3px;white-space:nowrap}
+.fish{overflow-x:auto;overflow-y:hidden;cursor:grab;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.fish.drag{cursor:grabbing}
+.pad{padding:0 50%;width:max-content}
+.strip{position:relative;height:412px}
+.strip svg{position:absolute;left:-90px;top:0;overflow:visible;pointer-events:none}
+.seg{position:absolute;width:112px;border-radius:4px;overflow:hidden;background:var(--panel2);border:1px solid var(--line);border-top:3px solid var(--k);cursor:pointer;user-select:none}
+.seg .th{height:60px;background-size:1500% 1000%;background-repeat:no-repeat}
+.seg .tx{font-size:10.5px;padding:1px 4px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg .rep{position:absolute;right:2px;top:2px;background:rgba(0,0,0,.78);font-size:10px;padding:0 4px;border-radius:3px;font-family:var(--mono)}
+.seg .rep.hot{color:var(--warn)}
+.seg.on{outline:2px solid #fff;z-index:3}
+.tick{position:absolute;top:172px;font-size:10px;color:var(--dim);transform:translateX(-50%);font-family:var(--mono)}
+.chapb{position:absolute;top:181px;height:20px;line-height:18px;background:var(--fg);color:var(--bg);font-size:11px;font-weight:700;padding:0 8px;border-radius:10px;white-space:nowrap;z-index:2;border:1px solid var(--bg)}
+.mus{position:absolute;top:246px;height:16px;line-height:16px;font-size:10.5px;color:var(--dim);background:var(--panel2);border-left:2px solid var(--dim);overflow:hidden;white-space:nowrap}
+.mus.q{background:repeating-linear-gradient(135deg,transparent 0 6px,var(--panel2) 6px 12px);color:var(--warn);border-color:var(--warn)}
+.mus span{display:inline-block;width:640px;padding-left:6px}
+.sfx{position:absolute;top:266px;font-size:10px;color:var(--accent);white-space:nowrap;padding-left:9px}
+.sfx::before{content:"";position:absolute;left:-4px;top:4px;width:7px;height:7px;background:var(--accent);transform:rotate(45deg)}
+.sub{position:absolute;height:22px;line-height:20px;font-size:12px;padding:0 7px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;user-select:none}
+.sub.on{border-color:#fff;background:#2a3a4c;z-index:3}
+.cpin{position:absolute;top:158px;width:20px;height:20px;margin-left:-10px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--accent);z-index:4;cursor:pointer}
+.cpin span{display:block;transform:rotate(45deg);color:#1a1300;font-size:10.5px;font-weight:700;text-align:center;line-height:20px}
+.composer{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel2)}
+.composer textarea{flex:1 1 260px;min-height:58px}
+.composer .cside{flex:0 1 auto;min-width:0} .composer .cats{margin:0 0 6px}
+.composer .note{flex:1 1 100%;margin-top:0}
+.fishbody{position:relative}
+#mark{border-color:var(--accent);color:var(--accent)}#spd{min-width:3.4em}#spd.on{background:var(--accent);color:#111;border-color:var(--accent)}
+.cm textarea{min-height:48px;margin-top:5px;border-color:var(--accent)}
+.cm .wait{color:var(--accent)}
+.cm .dst{font-size:12px;color:var(--real);margin-top:4px}
+.cm .wtag{color:#1a1300;background:var(--accent);border-radius:4px;padding:0 6px;font-weight:700}
+.cm button.whole{font-size:12px;padding:2px 8px}
+.cm button.whole[aria-pressed=true]{background:var(--accent);color:#1a1300;border-color:var(--accent)}
+#sendall{margin-top:8px;background:var(--accent);color:#1a1300;border-color:var(--accent);font-weight:700}
+/* Pre-approval proposals */
+.seg.prop{box-shadow:0 0 0 2px var(--accent)}
+.seg .pb{position:absolute;left:2px;top:2px;background:var(--accent);color:#1a1300;font-size:10px;font-weight:700;padding:0 5px;border-radius:3px}
+.ov .pm{position:absolute;top:0;height:5px;background:var(--accent)}
+#pnotes{margin:0 0 10px;padding-left:1.2em;color:var(--dim);font-size:12.5px}
+#propsum{position:sticky;top:0;z-index:4;background:var(--panel2);border:1px solid var(--accent);border-radius:6px;padding:8px 10px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+#propsum .big{font-weight:700} #propsum .warn{color:var(--warn);flex:1 1 100%;font-size:12.5px}
+.pc{border-top:1px solid var(--line);padding:12px 0 12px 10px;margin-top:10px;display:grid;grid-template-columns:150px minmax(0,1fr);gap:8px 12px;border-left:3px solid var(--line)}
+.pc.ok{border-left-color:var(--real)}
+.pc .hd{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:13px}
+.pc .pid{background:var(--accent);color:#1a1300;font-weight:700;border-radius:4px;padding:0 7px}
+.pc .tm{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--accent);cursor:pointer;font-family:var(--mono)}
+.pc .th{aspect-ratio:16/9;background-size:1500% 1000%;background-repeat:no-repeat;border-radius:4px;cursor:pointer}
+.pc .cap{font-size:11px;color:var(--dim);margin-top:3px}
+.pc h3{margin:0 0 5px;font-size:15px;text-wrap:balance}
+.pc dl{display:grid;grid-template-columns:6.4em minmax(0,1fr);gap:3px 8px;margin:0}
+.pc dt{color:var(--dim);font-size:12.5px} .pc dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.pc .said{grid-column:1/-1;font-size:13px;background:var(--panel2);padding:5px 8px;border-left:3px solid var(--accent);white-space:pre-wrap;overflow-wrap:anywhere}
+.pc .act{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start}
+.pc .act textarea{flex:1 1 220px;min-height:44px}
+.okb{background:var(--real);color:#04130b;border-color:var(--real);font-weight:700}
+.vok{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.vok .vst{color:var(--real);font-weight:700}.vok .vhint{color:var(--dim);font-size:13px}.okb.arm{background:var(--accent);border-color:var(--accent);color:#111}
+.info .pp{color:var(--accent);font-weight:700}
+.sendc{background:var(--fig);color:#04121c;border-color:var(--fig);font-weight:700}
+.sendc[disabled]{opacity:.5;cursor:default}
+.op{border:1px solid var(--line);border-radius:6px;padding:10px;margin:8px 0;background:var(--panel2)}
+.op.on{border-color:var(--real)} .op h3{margin:0 0 4px;font-size:15px} .op p{margin:4px 0;white-space:pre-wrap} .op .m{color:var(--dim);font-size:12.5px}
+#mine{flex:1 1 100%;border-top:1px solid var(--line);padding-top:8px}
+#mine summary{cursor:pointer;font-weight:700;color:var(--accent);padding:4px 0}
+#mine #list{max-height:46vh;overflow:auto}
+#nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;border-bottom:1px solid var(--line);padding-bottom:10px}
+#nav a{color:var(--fg);text-decoration:none;padding:5px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel2)}
+#nav a.on{background:var(--accent);color:#1a1300;border-color:var(--accent);font-weight:700}
+/* Details */
+.info .kind{display:inline-block;font-size:12px;font-weight:700;color:#0b0f14;background:var(--k);border-radius:4px;padding:0 7px;margin-right:6px}
+.info h2{font-size:16px;margin:4px 0 8px;font-weight:700;text-wrap:balance}
+.info dl{display:grid;grid-template-columns:7.2em minmax(0,1fr);gap:4px 8px;margin:0}
+.info dt{color:var(--dim);font-size:12.5px} .info dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.info .hot{color:var(--warn);font-weight:700}
+.info .zh{font-size:15px}
+/* Comments */
+textarea{width:100%;min-height:76px;resize:vertical;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px}
+.cats{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.cats button{padding:3px 10px;border-radius:14px;font-size:12.5px}
+.cats button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.addrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#add{background:var(--accent);color:#1a1300;border-color:var(--accent);font-weight:700}
+.note{font-size:12px;color:var(--dim);margin-top:8px}
+.note.bad{color:var(--warn)}
+.cm{border-top:1px solid var(--line);padding:8px 0}
+.cm .hd{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--dim)}
+.cm .tm{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--accent);cursor:pointer;font-family:var(--mono)}
+.cm .del{margin-left:auto;padding:0 7px;font-size:12px}
+.cm .bd{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:3px}
+.cm .rp{margin-top:5px;padding:5px 8px;background:var(--panel2);border-left:3px solid var(--real);font-size:13px;white-space:pre-wrap}
+.cm .ok{color:var(--real)}
+@media (max-width:900px){
+  .wrap{grid-template-columns:minmax(0,1fr)}
+  .right{position:static;max-height:none;overflow:visible}
+  .player{position:sticky;top:env(safe-area-inset-top,0px);z-index:20}
+  .screen{max-height:34vh}
+  .near{grid-template-columns:repeat(3,minmax(0,1fr))} .near .c.far{display:none}
+  .pc{grid-template-columns:104px minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<nav id="nav" hidden></nav>
+<header>
+  <h1 id="ttl"></h1>
+  <span class="hint">Drag the shot timeline below to see nearby shots. Stop on one to see how it was made. Write comments in the box under the video.</span>
+</header>
+
+<div class="wrap">
+  <div class="left">
+    <div class="player">
+      <div class="screen" id="screen">
+        <video id="vid" playsinline preload="none"></video>
+        <div class="pv" id="pv"><span class="pvtag" id="pvtag">Preview thumbnail</span></div>
+        <div class="ovbar" id="ovbar"><div class="hov" id="hov"><div class="hth" id="hth"></div><div class="htm mono" id="htm">0:00</div></div><div class="ov" id="ov"></div></div>
+      </div>
+      <div class="ctl">
+        <button id="play">▶ Play</button>
+        <button id="prev" title="Previous shot">⏮ Prev shot</button>
+        <button id="next" title="Next shot">Next shot ⏭</button>
+        <button id="b5">−5s</button>
+        <button id="f5">+5s</button>
+        <button id="spd" title="Playback speed: click to cycle 1× → 1.5× → 2×">1×</button>
+        <button id="mark" title="Note this moment now and write the comment later">+ Mark here</button>
+        <span class="time mono"><span id="tnow">0:00.0</span> / <span id="ttot"></span></span>
+      </div>
+    </div>
+
+      <div class="composer">
+        <textarea id="ta" rows="2" placeholder="Stop where you want a change and write it here. For example: this photo repeats too much, the subtitles are too fast…"></textarea>
+        <div class="cside">
+          <div class="cats" id="cats"></div>
+          <div class="addrow">
+            <button id="add">Add comment at <span id="addt" class="mono">0:00</span></button>
+            <button id="addall">Add as whole-film note</button>
+            <button class="sendc">Send to <span class="ag">AI</span></button>
+          </div>
+        </div>
+        <div class="note" id="note">Comments are saved first, not sent right away. When you are done, click "Send to <span class="ag">AI</span>".</div>
+        <details id="mine">
+          <summary>My comments (<span id="minen">0</span>) · open to see them all at once</summary>
+          <div id="list"></div>
+          <div class="addrow" style="margin-top:8px"><button class="sendc">All done, send to <span class="ag">AI</span></button><button id="copy" hidden>Copy all comments</button></div>
+        </details>
+        <div class="vok" id="vok" hidden></div>
+      </div>
+    <div class="box">
+      <div class="lab">Shot type colors (the timeline is under the video; click or drag to jump)</div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="box">
+      <div class="lab">Nearby shots</div>
+      <div class="near" id="near"></div>
+    </div>
+
+    <div class="fishwrap">
+      <div class="fishbody">
+      <div class="now"></div>
+      <div class="lanes"><span style="top:6px">Picture</span><span style="top:206px">Sound</span><span style="top:290px">Subtitles</span></div>
+      <div class="fish" id="fish" tabindex="0" aria-label="Shot timeline, drag left or right"><div class="pad"><div class="strip" id="strip"></div></div></div>
+      </div>
+    </div>
+
+    <div class="box" id="propbox" hidden>
+      <div class="lab">Proposals before spending (not sent yet, no credits charged)</div>
+      <ul id="pnotes"></ul>
+      <div id="openbox" hidden><div class="lab">Three opening proposals (pick one; the current draft uses proposal 1)</div><div id="opens"></div></div>
+      <div id="propsum"></div>
+      <div id="props"></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="box info" id="info"></div>
+
+  </div>
+</div>
+
+<script>
+const D = {"title":"Summit Coffee | Opening teaser","ver":"demo-v1","total":30.02,"chunk":100000,"direct":true,"agent":"AI","kinds":{"card":["Title card","(not filled in)","(not filled in)","#5fb4e8"],"code":["Motion graphics","(not filled in)","(not filled in)","#ff9ac4"],"fig":["Chart","(not filled in)","(not filled in)","#2fe0a0"]},"chap":[],"pic":[{"s":0,"d":3,"k":"card","t":"Title card","b":0,"how":"SVG + CSS + GSAP title-card animation","src":"Original, no external assets"},{"s":3,"d":5,"k":"code","t":"Sunrise","b":1,"how":"SVG + GSAP motion graphics, rendered with HyperFrames","src":"Original, no external assets"},{"s":8,"d":4,"k":"code","t":"Pour-over","b":2,"how":"SVG + GSAP motion graphics, rendered with HyperFrames","src":"Original, no external assets"},{"s":12,"d":5,"k":"fig","t":"4 minutes in a cup","b":3,"how":"SVG + GSAP bar-chart animation","src":"Original, no external assets"},{"s":17,"d":5,"k":"code","t":"Storefront","b":4,"how":"SVG + GSAP motion graphics, rendered with HyperFrames","src":"Original, no external assets"},{"s":22,"d":5,"k":"card","t":"Three reasons","b":5,"how":"SVG + CSS + GSAP title-card animation","src":"Original, no external assets"},{"s":27,"d":3.02,"k":"card","t":"End card","b":6,"how":"SVG + CSS + GSAP title-card animation","src":"Original, no external assets"}],"subs":[[0.3,2.8,"Summit Coffee opens this November."],[3.3,7.8,"Up here, the first light arrives early."],[8.3,11.8,"Drop by drop, poured slow."],[12.3,16.8,"One cup takes four minutes."],[17.3,21.8,"Push the door and the aroma finds you."],[22.3,26.8,"High up, small batches, early hours."],[27.3,29.8,"November 28. See you at the top."]],"vo":[[0.3,2.5,"Summit Coffee opens this November."],[3.3,4.5,"Up here, the first light arrives early."],[8.3,3.5,"Drop by drop, poured slow."],[12.3,4.5,"One cup takes four minutes."],[17.3,4.5,"Push the door and the aroma finds you."],[22.3,4.5,"High up, small batches, early hours."],[27.3,2.5,"November 28. See you at the top."]],"sfx":[],"music":[],"wave":[3,3,14,7,40,15,39,12,60,28,34,24,60,28,34,24,68,21,39,19,68,22,39,19,65,28,34,26,66,28,34,26,57,17,39,12,57,17,39,12,60,28,34,24,60,27,34,24,68,21,39,19,68,21,39,19,65,28,34,26,66,28,34,26,57,17,38,12,57,17,39,12,60,28,34,24,60,27,34,24,68,21,39,19,68,21,39,19,65,28,34,26,66,28,34,26,57,17,39,12,57,17,39,12,60,28,34,24,60,27,34,24,68,22,38,15,42,9,12,2],"voLabel":"Narration / dialogue"};
+['chap', 'subs', 'vo', 'sfx', 'music', 'wave'].forEach(k => { D[k] = D[k] || []; }); D.kinds = D.kinds || {};   // missing fields default to empty
+const AG = D.agent || 'AI', VO = D.voLabel || 'Narration / dialogue', TT = D.title || 'Review Desk';   // the "Send to AI" and "Narration / dialogue" labels in the UI come from the data
+document.querySelectorAll('.ag').forEach(e => { e.textContent = AG; });
+const P = D.props || []; let appr = {}, pick = null;
+const LSK = (D.board || D.title || '') + '|' + D.ver + ':';   // one origin or file:// folder may hold several review desks, so local storage keys are split by version name
+const VK = 'version'; let vArm = 0;   // for version approval; keep it at the top: without window.claude, useLocal() calls renderVok() as soon as the page loads
+const pdr = {}, RATE = D.twd || 1.6;   // keep at the top: render() uses these right away
+const UNIT = D.unit || 'NT$';   // proposal cost: D.twd is the amount per credit; without it only credits are shown
+const pts = x => (Math.round(x * 100) / 100) + (Math.round(x * 100) / 100 === 1 ? ' credit' : ' credits') + (D.twd ? ' (about ' + UNIT + (x * RATE < 10 ? (x * RATE).toFixed(1) : Math.round(x * RATE)) + ')' : '');
+const PPS = 32, SPINE = 190, CH = D.chunk || 100000, NCH = Math.ceil(D.total / CH), END = Math.min(NCH * CH, D.total) - 0.3;
+const $ = id => document.getElementById(id);
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const fmt = (t, dec) => { t = Math.max(0, t); const m = Math.floor(t / 60), s = t - m * 60; return m + ':' + (dec ? s.toFixed(1).padStart(4, '0') : String(Math.floor(s)).padStart(2, '0')); };
+const KS = k => D.kinds[k] || [k, '', ''];   // category codes missing from the data do not crash
+const CSSK = ['aiv', 'aii', 'realv', 'real', 'fig', 'photo', 'b3d', 'bvid', 'code', 'card', 'warn'];   // color: D.kinds[k][3] first, then the built-in CSS variable, otherwise --card
+const KC = k => (D.kinds[k] && D.kinds[k][3]) || (CSSK.includes(k) ? 'var(--' + k + ')' : 'var(--card)');
+function thumb(e, t) { const i = Math.max(0, Math.min(Math.floor(t), Math.floor(D.total) - 1)), sh = Math.floor(i / 150), j = i % 150;
+  e.style.backgroundImage = 'url(' + (D.mbase || '') + 't' + sh + '.jpg)'; e.style.backgroundPosition = (j % 15) / 14 * 100 + '% ' + Math.floor(j / 15) / 9 * 100 + '%'; }
+const find = (arr, t, s, e) => { for (let i = 0; i < arr.length; i++) if (t >= s(arr[i]) && t < e(arr[i])) return i; return -1; };
+const segAt = t => { const i = find(D.pic, t, p => p.s, p => p.s + p.d); return i < 0 ? D.pic.length - 1 : i; };
+const midT = p => p.s + Math.min(p.d * 0.6, p.d - 0.4);
+
+$('ttl').textContent = P.length ? TT : TT + ' | Review Desk'; document.title = $('ttl').textContent;
+if (D.nav) { $('nav').hidden = false; D.nav.forEach(n => { const a = el('a', n.on ? 'on' : '', n.label); a.href = n.href; $('nav').appendChild(a); }); }
+if (D.hint) document.querySelector('header .hint').textContent = D.hint; else if (P.length) document.querySelector('header .hint').textContent = 'Shots outlined in yellow are where we propose switching to AI. Read each item below for its description and cost, leave comments, and approve it once nothing needs changing. No credits have been spent yet.'; $('ttot').textContent = fmt(D.total);
+
+/* ---------- Whole-film overview ---------- */
+const ov = $('ov'), pct = t => t / D.total * 100 + '%';
+D.pic.forEach(p => { const i = el('i'); i.style.left = pct(p.s); i.style.width = pct(p.d); i.style.background = KC(p.k); ov.appendChild(i); });
+D.chap.forEach(c => { const m = el('div', 'chm'); m.style.left = pct(c[0]); m.title = c[1]; ov.appendChild(m); });
+const ovPh = el('div', 'ph'); ov.appendChild(ovPh);
+{ const tot = {}; D.pic.forEach(p => { (tot[p.k] = tot[p.k] || [0, 0])[0]++; tot[p.k][1] += p.d; });
+  Object.keys(D.kinds).forEach(k => { if (!tot[k]) return; const s = el('span'); const b = el('b'); b.style.background = KC(k); s.appendChild(b);
+    s.appendChild(document.createTextNode(D.kinds[k][0] + ' ')); s.appendChild(el('span', 'mono', tot[k][0] + (tot[k][0] === 1 ? ' shot · ' : ' shots · ') + fmt(tot[k][1]))); $('legend').appendChild(s); }); }
+
+/* ---------- Shot timeline ---------- */
+const strip = $('strip'), fish = $('fish'), W = D.total * PPS; strip.style.width = W + 'px';
+const NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('width', W + 180); svg.setAttribute('height', 412);
+const g = document.createElementNS(NS, 'g'); g.setAttribute('transform', 'translate(90,0)'); svg.appendChild(g); strip.appendChild(svg);
+const sv = (tag, at) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); g.appendChild(e); return e; };
+// tail, spine and head of the timeline
+sv('polygon', { points: `0,${SPINE} -70,${SPINE - 46} -52,${SPINE} -70,${SPINE + 46}`, fill: 'var(--line)' });
+sv('rect', { x: 0, y: SPINE - 2, width: W, height: 4, fill: 'var(--fg)' });
+sv('polygon', { points: `${W},${SPINE - 34} ${W + 78},${SPINE} ${W},${SPINE + 34}`, fill: 'var(--fg)' });
+sv('circle', { cx: W + 22, cy: SPINE - 6, r: 4, fill: 'var(--bg)' });
+for (let t = 0; t <= D.total; t += 5) { sv('rect', { x: t * PPS - .5, y: SPINE - (t % 10 ? 5 : 8), width: 1, height: t % 10 ? 5 : 8, fill: 'var(--dim)' });
+  if (t % 10 === 0) { const k = el('div', 'tick', fmt(t)); k.style.left = t * PPS + 'px'; strip.appendChild(k); } }
+// audio waveform
+{ let d = `M0,${SPINE + 8}`; D.wave.forEach((v, i) => { d += `L${(i + .5) * PPS / 4},${SPINE + 8 + v * .38}`; }); d += `L${W},${SPINE + 8}Z`; sv('path', { d, fill: 'var(--fig)', opacity: .55 }); }
+D.music.forEach(m => { const e = el('div', 'mus' + (/silen|mute/i.test(m[2]) ? ' q' : '')); e.style.left = m[0] * PPS + 'px'; e.style.width = (m[1] - m[0]) * PPS + 'px';
+  for (let k = 0; k < Math.ceil((m[1] - m[0]) * PPS / 640); k++) e.appendChild(el('span', '', 'Music: ' + m[2])); strip.appendChild(e); });
+D.sfx.forEach(s => { const x = s[0] * PPS; sv('line', { x1: x, y1: SPINE, x2: x, y2: 270, stroke: 'var(--accent)', 'stroke-width': 1, opacity: .6 });
+  const e = el('div', 'sfx', s[1]); e.style.left = x + 'px'; strip.appendChild(e); });
+// shot branches
+const segEls = D.pic.map((p, i) => { const x = p.s * PPS, top = i % 2 ? 86 : 8;
+  sv('line', { x1: x, y1: SPINE, x2: x + 14, y2: top + 60, stroke: KC(p.k), 'stroke-width': 2, opacity: .8 });
+  const e = el('div', 'seg'); e.style.left = x + 14 + 'px'; e.style.top = top + 'px'; e.style.setProperty('--k', KC(p.k));
+  const th = el('div', 'th'); thumb(th, midT(p)); e.appendChild(th); e.appendChild(el('div', 'tx', p.t));
+  if (p.n > 1) e.appendChild(el('div', 'rep' + (p.n >= 4 ? ' hot' : ''), p.u + '/' + p.n));
+  e.title = p.t + ' | ' + KS(p.k)[0] + ' | ' + p.d.toFixed(1) + ' s'; e.onclick = () => { if (!moved) go(p.s + 0.05); }; strip.appendChild(e); return e; });
+D.chap.forEach(c => { const e = el('div', 'chapb', c[1]); e.style.left = c[0] * PPS + 'px'; strip.appendChild(e); });
+// subtitle branches
+const subEls = D.subs.map((s, j) => { const x = s[0] * PPS, top = SPINE + 104 + (j % 4) * 27;
+  sv('line', { x1: x, y1: SPINE, x2: x + 10, y2: top, stroke: 'var(--dim)', 'stroke-width': 1, opacity: .35 });
+  const e = el('div', 'sub', s[2]); e.style.left = x + 10 + 'px'; e.style.top = top + 'px';
+  if (D.subs[j + 4]) e.style.maxWidth = Math.max(60, D.subs[j + 4][0] * PPS - x - 16) + 'px';
+  e.onclick = () => { if (!moved) go(s[0] + 0.05); }; strip.appendChild(e); return e; });
+
+/* ---------- Player and time ---------- */
+const vid = $('vid'), pv = $('pv'); let T = 0, cur = -1, pend = null, want = false, loaded = -1, progX = 0, curSeg = -1, curSub = -2, seekTimer = 0, moved = false;
+// Fetch each chunk as a blob first: seeking works without server range support. shortcut: about 11MB per chunk is fetched whole, switch to streaming when films get longer or sharper
+// D.direct: one file for the whole film, the browser streams it and never swaps files, so there is no hiccup at chunk boundaries; boards made by make_board.py always use this mode
+const blobs = {}; const getSrc = k => blobs[k] || (blobs[k] = D.direct ? Promise.resolve((D.mbase || '') + 'v' + k + '.mp4') : fetch((D.mbase || '') + 'v' + k + '.mp4').then(r => { if (!r.ok) throw 0; return r.blob(); }).then(b => URL.createObjectURL(b)).catch(() => (D.mbase || '') + 'v' + k + '.mp4'));
+function loadSeek(t, play) { t = Math.max(0, Math.min(t, END)); const k = Math.min(NCH - 1, Math.floor(t / CH)), lt = t - k * CH; want = !!play;
+  if (k !== cur) { cur = k; loaded = -1; pend = lt; vid.pause(); pv.hidden = false; $('pvtag').textContent = 'Loading video…'; getSrc(k).then(u => { if (cur !== k) return; vid.src = u; vid.load(); }); }
+  else if (loaded === k) { vid.currentTime = lt; if (play) vid.play().catch(() => {}); } else pend = lt; }
+vid.addEventListener('loadedmetadata', () => { loaded = cur; if (pend != null) { vid.currentTime = pend; pend = null; } if (want) vid.play().catch(() => {}); });
+vid.addEventListener('seeked', () => { if (!seekTimer) pv.hidden = true; });
+vid.addEventListener('playing', () => { pv.hidden = true; $('play').textContent = '❚❚ Pause'; requestAnimationFrame(loop); });
+vid.addEventListener('pause', () => { $('play').textContent = '▶ Play'; });
+vid.addEventListener('ended', () => { if (cur < NCH - 1) loadSeek((cur + 1) * CH, true); });
+vid.addEventListener('error', () => { if (cur >= 0) { pv.hidden = false; $('pvtag').textContent = 'The video failed to load. Thumbnails only.'; } });
+function loop() { if (vid.paused || vid.seeking) { if (!vid.paused) requestAnimationFrame(loop); return; } show(cur * CH + vid.currentTime, 'play'); if (vid.currentTime > CH - 40 && cur < NCH - 1) getSrc(cur + 1); requestAnimationFrame(loop); }
+function toggle() { if (vid.paused) { if (cur < 0 || loaded !== cur || Math.abs(cur * CH + vid.currentTime - T) > 0.4) loadSeek(T, true); else vid.play().catch(() => {}); } else vid.pause(); }
+// jump to a time (stay there, show the thumbnail until the video catches up)
+function go(t) { t = Math.max(0, Math.min(t, END)); const playing = !vid.paused; preview(t); show(t, 'jump'); loadSeek(t, playing); }
+function preview(t) { thumb(pv, t); pv.hidden = false; $('pvtag').textContent = 'Preview thumbnail ' + fmt(t); }
+function scrub(t, src) { t = Math.max(0, Math.min(t, END)); if (!vid.paused) vid.pause(); preview(t); show(t, src);
+  clearTimeout(seekTimer); seekTimer = setTimeout(() => { seekTimer = 0; loadSeek(T, false); }, 220); }
+function show(t, src) { T = t; $('tnow').textContent = fmt(t, 1); $('addt').textContent = fmt(t); ovPh.style.left = pct(t);
+  if (src !== 'fish') { progX = Math.round(t * PPS); fish.scrollLeft = progX; }
+  const i = segAt(t); if (i !== curSeg) { if (curSeg >= 0) segEls[curSeg].classList.remove('on'); segEls[i].classList.add('on'); curSeg = i; near(i); }
+  const j = find(D.subs, t, s => s[0], s => s[1]); if (j !== curSub || i !== lastInfoSeg) { if (curSub >= 0) subEls[curSub].classList.remove('on'); if (j >= 0) subEls[j].classList.add('on'); curSub = j; info(i, j, t); } }
+let lastInfoSeg = -1;
+fish.addEventListener('scroll', () => { if (Math.abs(fish.scrollLeft - progX) < 2) return; progX = -9; scrub(fish.scrollLeft / PPS, 'fish'); }, { passive: true });
+// drag with the mouse on desktop
+{ let down = false, x0 = 0, s0 = 0;
+  fish.addEventListener('pointerdown', e => { moved = false; if (e.pointerType !== 'mouse') return; down = true; x0 = e.clientX; s0 = fish.scrollLeft; });
+  window.addEventListener('pointermove', e => { if (!down) return; const dx = e.clientX - x0; if (Math.abs(dx) > 4) { moved = true; fish.classList.add('drag'); } if (moved) fish.scrollLeft = s0 - dx; });
+  window.addEventListener('pointerup', () => { down = false; fish.classList.remove('drag'); setTimeout(() => { moved = false; }, 0); }); }
+{ let down = false; const at = e => { const r = ov.getBoundingClientRect(); scrub((e.clientX - r.left) / r.width * D.total, 'ov'); };
+  ov.addEventListener('pointerdown', e => { down = true; ov.setPointerCapture(e.pointerId); at(e); });
+  const hov = $('hov'), bar = $('ovbar');
+  const tip = e => { const r = ov.getBoundingClientRect(), f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), tt = f * D.total; hov.style.left = (r.left - bar.getBoundingClientRect().left + f * r.width) + 'px'; thumb($('hth'), tt); $('htm').textContent = fmt(tt); hov.classList.add('on'); };
+  ov.addEventListener('pointerenter', tip); ov.addEventListener('pointerleave', () => { if (!down) hov.classList.remove('on'); });
+  bar.addEventListener('click', e => e.stopPropagation()); bar.addEventListener('pointerdown', e => e.stopPropagation());
+  ov.addEventListener('pointermove', e => { tip(e); if (down) at(e); }); ov.addEventListener('pointerup', () => { down = false; hov.classList.remove('on'); }); ov.addEventListener('pointercancel', () => { down = false; });
+  // no mouse on phones: the bar appears on tap and hides after 3 seconds
+  let hideT = 0; const wake = () => { bar.classList.add('on'); clearTimeout(hideT); hideT = setTimeout(() => { if (!down) bar.classList.remove('on'); }, 3000); };
+  if (matchMedia('(hover:none)').matches) { $('screen').addEventListener('touchstart', wake, { passive: true }); bar.addEventListener('touchstart', wake, { passive: true }); bar.addEventListener('touchmove', wake, { passive: true }); } }   // keep inside the same { }: bar and down are only defined in here
+$('screen').onclick = toggle; $('play').onclick = toggle;
+$('b5').onclick = () => go(T - 5); $('f5').onclick = () => go(T + 5);
+{ const R = [1, 1.5, 2]; let r = 0; const set = () => { vid.playbackRate = R[r]; $('spd').textContent = R[r] + '×'; $('spd').classList.toggle('on', r > 0); };   // playback speed; the browser resets it to 1 after the source changes, so apply it again on load
+  $('spd').onclick = () => { r = (r + 1) % R.length; set(); }; vid.addEventListener('loadedmetadata', set); }
+$('prev').onclick = () => { const i = segAt(T); go(D.pic[T - D.pic[i].s > 1 ? i : Math.max(0, i - 1)].s + 0.05); };
+$('next').onclick = () => { const i = Math.min(D.pic.length - 1, segAt(T) + 1); go(D.pic[i].s + 0.05); };
+document.addEventListener('keydown', e => { if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON') return;
+  if (e.key === ' ') { e.preventDefault(); toggle(); } else if (e.key === 'ArrowLeft') { e.preventDefault(); go(T - 2); } else if (e.key === 'ArrowRight') { e.preventDefault(); go(T + 2); } });
+
+/* ---------- Nearby shots ---------- */
+function near(i) { const box = $('near'); box.textContent = '';
+  for (let d = -2; d <= 2; d++) { const p = D.pic[i + d], c = el('div', 'c' + (d === 0 ? ' cur' : '') + (Math.abs(d) === 2 ? ' far' : '') + (p ? '' : ' none'));
+    if (p) { c.style.setProperty('--k', KC(p.k)); const th = el('div', 'th'); thumb(th, midT(p)); c.appendChild(th); const tx = el('div', 'tx');
+      tx.appendChild(el('div', '', (d < 0 ? 'Prev ' + -d : d > 0 ? 'Next ' + d : 'Now') + ' | ' + p.t)); tx.appendChild(el('div', 'm', KS(p.k)[0] + ' · ' + p.d.toFixed(1) + ' s')); c.appendChild(tx); c.onclick = () => go(p.s + 0.05); }
+    box.appendChild(c); } }
+
+/* ---------- Details for this moment ---------- */
+function info(i, j, t) { lastInfoSeg = i; const p = D.pic[i], K = KS(p.k), box = $('info'); box.textContent = '';
+  const chap = D.chap.filter(c => c[0] <= t).pop(); box.appendChild(el('div', 'lab', 'This shot | ' + (i + 1) + ' of ' + D.pic.length + ' | ' + (chap ? chap[1] : 'Opening')));
+  const k = el('span', 'kind', K[0]); k.style.setProperty('--k', KC(p.k)); box.appendChild(k); box.appendChild(el('span', 'mono', fmt(p.s, 1) + ' – ' + fmt(p.s + p.d, 1)));
+  box.appendChild(el('h2', '', p.t)); const dl = el('dl');
+  const row = (a, b, cls) => { dl.appendChild(el('dt', '', a)); dl.appendChild(el('dd', cls || '', b)); };
+  if (p.desc) row('On screen', p.desc);
+  row('Made with', p.how || K[1]); row('Source', p.src || K[2]); row('Duration', p.d.toFixed(1) + ' s' + (p.f ? ' | Framing: ' + p.f : ''));
+  if (p.note) row('Note', p.note);
+  if (D.mode === 'new') row('Cost', p.cost ? pts(p.cost) + ', done only after you approve' : 'Free');
+  if (p.sk) row('Sketch', p.sk);
+  if (p.n) row('Reuse', p.n > 1 ? 'Appearance ' + p.u + ' of ' + p.n + ' in the film' : 'Appears only once in the film', p.n >= 4 ? 'hot' : '');
+  if (p.o) row('Overlay card', p.o);
+  if (p.prop) row('Proposal ' + p.prop.id, (D.mode === 'new' ? 'Paid shot: ' : 'Proposed swap: ') + (p.prop.kind === 'video' ? 'AI video' : 'AI image') + ', ' + p.prop.title, 'pp');
+  const m = D.music.find(x => t >= x[0] && t < x[1]); const fx = D.sfx.filter(s => s[0] >= p.s && s[0] < p.s + p.d).map(s => s[1] + ' (' + fmt(s[0]) + ')');
+  row('Music', m ? m[2] : 'None'); if (fx.length) row('Sound FX', fx.join(', '));
+  const v = D.vo.find(x => t >= x[0] - 0.25 && t < x[0] + x[1] + 0.5); row(VO, v ? v[2] : '(none at this moment)');
+  row('Subtitles', j >= 0 ? D.subs[j][2] : '(no subtitle at this moment)', 'zh'); box.appendChild(dl); }
+
+/* ---------- Comments ---------- */
+const CATS = ['Picture', 'Sound', 'Subtitles', 'Pacing', 'Other']; let cat = 'Picture', db = null, cms = [], local = false;
+CATS.forEach(c => { const b = el('button', '', c); b.setAttribute('aria-pressed', c === cat); b.onclick = () => { cat = c; [...$('cats').children].forEach(x => x.setAttribute('aria-pressed', x.textContent === cat)); }; $('cats').appendChild(b); });
+const ta = $('ta'); try { ta.value = localStorage.getItem(LSK + 'draft') || ''; } catch (e) {}
+let resume = false; ta.addEventListener('focus', () => { if (!vid.paused) { resume = true; vid.pause(); note('Video paused at ' + fmt(T) + '. It will resume after you add the comment.'); } });
+ta.addEventListener('input', () => { try { localStorage.setItem(LSK + 'draft', ta.value); } catch (e) {} });
+const note = (t, bad) => { $('note').textContent = t; $('note').className = 'note' + (bad ? ' bad' : ''); };
+const saveLocal = () => { try { localStorage.setItem(LSK + 'cms', JSON.stringify(cms)); } catch (e) {} };
+async function add(whole) { const text = ta.value.trim();
+  if (!text) { if (!vid.paused) { resume = true; vid.pause(); } ta.focus(); note('Video paused at ' + fmt(T) + '. Write your comment in the box, then press this button again to save it and resume playback.', true); return; }
+  const i = segAt(T), doc = { t: whole ? -1 : Math.round(T * 10) / 10, seg: whole ? -1 : i + 1, segTitle: whole ? 'Whole film' : D.pic[i].t, cat, text, at: new Date().toISOString(), ver: D.ver, done: false };
+  ta.value = ''; try { localStorage.removeItem(LSK + 'draft'); } catch (e) {} ta.blur();
+  const again = resume; resume = false; if (again) toggle();      // resume playback first, then save: on phones playback only starts if it happens during the tap
+  if (db) { try { await db.collection('comments').add(doc); } catch (e) { if (!vid.paused) vid.pause(); ta.value = text; note('Could not save (' + (e && e.code || 'unknown') + '). Your text is still in the box, please try again.', true); return; } }
+  else { cms.push(Object.assign({ id: 'l' + Date.now() }, doc)); saveLocal(); render(); }
+  note('Saved' + (again ? ', video resumed' : '') + '. Open "My comments" to see them all, and send them to ' + AG + ' when you are done.'); }
+// mark first, write later: no pause, just record the time
+const drafts = (() => { try { return JSON.parse(localStorage.getItem(LSK + 'drafts')) || {}; } catch (e) { return {}; } })();   // text in marks that is not saved yet: kept on this device, survives a refresh
+const keepDrafts = () => { try { localStorage.setItem(LSK + 'drafts', JSON.stringify(drafts)); } catch (e) {} };
+// save the text written in marks; returns how many were saved and how many failed
+async function flushDrafts() { let n = 0, bad = 0; for (const id of Object.keys(drafts)) { const text = (drafts[id] || '').trim(); if (!text) { delete drafts[id]; continue; }
+    if (!cms.some(x => x.id === id)) continue;
+    try { await setText(id, text); const c = cms.find(x => x.id === id); if (c) c.text = text; delete drafts[id]; n++; } catch (e) { bad++; } }
+  keepDrafts(); return { n, bad }; }
+async function mark() { const i = segAt(T), at = T, doc = { t: Math.round(at * 10) / 10, seg: i + 1, segTitle: D.pic[i].t, cat: '', text: '', at: new Date().toISOString(), ver: D.ver, done: false };
+  if (db) { try { await db.collection('comments').add(doc); } catch (e) { note('Could not save the mark, please try again.', true); return; } } else { cms.push(Object.assign({ id: 'l' + Date.now() }, doc)); saveLocal(); render(); }
+  note('Marked ' + fmt(at) + '. When you finish watching, open "My comments" and write them all.'); }
+$('mark').onclick = mark;
+async function setWhole(id, v) { if (db) { try { await db.collection('comments').doc(id).update({ whole: v }); } catch (e) { note('Could not save, please try again.', true); } } else { const c = cms.find(x => x.id === id); if (c) c.whole = v; saveLocal(); render(); } }
+async function setText(id, text) { if (db) await db.collection('comments').doc(id).update({ text }); else { const c = cms.find(x => x.id === id); if (c) c.text = text; saveLocal(); } }
+async function sendAll() { const { n, bad } = await flushDrafts(); render();
+  if (bad) note('Could not save ' + bad + ' of them. Your text is still there, please try again.', true); else if (n) note('Saved ' + n + (n === 1 ? ' comment' : ' comments') + '. When you are done, click "Send to ' + AG + '".'); else note('All marks are still empty. Write something first, then save.', true); }
+$('add').onclick = () => add(false); $('addall').onclick = () => add(true);
+function render() { const list = $('list'); list.textContent = ''; let pendN = 0; const arr = cms.slice().sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));   // newest on top
+  [...ov.querySelectorAll('.pin')].forEach(x => x.remove()); [...strip.querySelectorAll('.cpin')].forEach(x => x.remove());
+  arr.forEach((c, n) => { const d = el('div', 'cm'), hd = el('div', 'hd');
+    if (c.t >= 0) { const tm = el('span', 'tm', fmt(c.t)); tm.onclick = () => go(c.t); hd.appendChild(tm); } else hd.appendChild(el('span', '', 'Whole film'));
+    hd.appendChild(el('span', '', '#' + (arr.length - n) + (c.cat ? ' | ' + c.cat : '') + (c.t >= 0 ? ' | ' + (c.segTitle || '') : ''))); if (!c.text) { hd.appendChild(el('span', 'wait', 'Marked, needs text')); pendN++; }
+    if (c.done) hd.appendChild(el('span', 'ok', '✓ Done'));
+    if (c.whole) hd.appendChild(el('span', 'wtag', 'Check the whole film'));
+    { const wb = el('button', 'whole', c.whole ? '✓ Whole film' : 'Check whole film'); wb.setAttribute('aria-pressed', !!c.whole); wb.title = 'Check everywhere in the film that has a similar problem'; wb.onclick = () => setWhole(c.id, !c.whole); hd.appendChild(wb); }
+    const del = el('button', 'del', 'Delete'); del.onclick = () => { if (del.dataset.sure) remove(c.id); else { del.dataset.sure = 1; del.textContent = 'Confirm delete?'; setTimeout(() => { delete del.dataset.sure; del.textContent = 'Delete'; }, 3000); } };
+    hd.appendChild(del); d.appendChild(hd); if (c.text) { d.appendChild(el('div', 'bd', c.text)); d.appendChild(el('div', 'dst', local ? '✓ Saved on this device' : '✓ Saved to the review site')); } else { const i = el('textarea'); i.rows = 2; i.placeholder = 'What should change here?'; i.value = drafts[c.id] || ''; const st = el('div', 'dst', (drafts[c.id] || '').trim() ? '✓ Draft kept on this device (it goes out with ' + (local ? '"Copy all comments"' : '"Send to ' + AG + '"') + ')' : ''); i.oninput = () => { drafts[c.id] = i.value; keepDrafts(); st.textContent = i.value.trim() ? '✓ Draft kept on this device (it goes out with ' + (local ? '"Copy all comments"' : '"Send to ' + AG + '"') + ')' : ''; }; d.appendChild(i); d.appendChild(st); } if (c.reply) d.appendChild(el('div', 'rp', AG + ': ' + c.reply)); list.appendChild(d);
+    if (c.t >= 0) { const p = el('div', 'pin'); p.style.left = pct(c.t); ov.appendChild(p);
+      const q = el('div', 'cpin'); q.style.left = c.t * PPS + 'px'; q.appendChild(el('span', '', arr.length - n)); q.title = c.text; q.onclick = () => go(c.t); strip.appendChild(q); } });
+  if (pendN) { const b = el('button', '', 'Save ' + pendN + (pendN === 1 ? ' written mark' : ' written marks')); b.id = 'sendall'; b.onclick = sendAll; list.appendChild(b); }
+  if (!arr.length) list.appendChild(el('div', 'note', 'No comments yet. Move to where you want a change, write it down and click "Add comment".'));
+  $('copy').hidden = !arr.length && !D.pub; $('minen').textContent = arr.length; if (P.length) renderProps(); }
+async function remove(id) { if (db) { try { await db.collection('comments').doc(id).delete(); } catch (e) { note('Could not delete, please try again.', true); } } else { cms = cms.filter(c => c.id !== id); saveLocal(); render(); } }
+$('copy').onclick = async () => { const f = await flushDrafts(); if (f.n || f.bad) render();   // save text written in marks first, then copy
+  const txt = sendText(1e9).replace('. Full details are in the Review Desk database.', '.');
+  navigator.clipboard.writeText(txt).then(() => note('Copied. Paste it back into the chat.'), () => { ta.value = txt; ta.select(); note('Could not copy. The text is in the box above, so select all and copy it by hand.', true); }); };
+function useLocal() { local = true; try { pick = localStorage.getItem(LSK + 'pick'); } catch (e) {} renderOpens(); try { appr = JSON.parse(localStorage.getItem(LSK + 'appr') || '{}'); } catch (e) { appr = {}; } renderVok(); try { cms = JSON.parse(localStorage.getItem(LSK + 'cms') || '[]'); } catch (e) { cms = []; } render();
+  if (D.pub || !window.claude) { document.querySelectorAll('.sendc').forEach(b => { b.hidden = true; }); $('copy').hidden = false; note('Local mode: comments and approvals are stored only in the browser on this computer. When you are done, open "My comments", click "Copy all comments" and paste it into the chat with ' + AG + '.'); }
+  else note('Cloud storage is not reachable from here, so comments stay on this device only. When you are done, click "Copy all comments" and paste it back into the chat.', true); }
+render(); if (window.innerWidth > 900) $('mine').open = true;
+// cloud mode (D.pub): comments live in the site backend (/api/store), shaped like the Artifact db (window.claude.use('db')), so the code below does not need two versions
+async function pubDb() { let st = { comments: {}, approvals: {}, choices: {} }; const subs = []; const emit = () => subs.forEach(f => f());
+  const take = async r => { if (!r.ok) throw { code: 'http_' + r.status }; st = await r.json(); emit(); };
+  const call = body => fetch('/api/store', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ b: D.board }, body)) }).then(take);
+  const load = () => fetch('/api/store?b=' + D.board, { cache: 'no-store' }).then(take);
+  await load();
+  const api = { state: () => st, load, collection: c => ({
+    add: d => call({ op: 'set', c, id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), d }),
+    doc: id => ({ set: d => call({ op: 'set', c, id, d }), update: d => call({ op: 'merge', c, id, d }), delete: () => call({ op: 'del', c, id }),
+      onSnapshot: f => { const g = () => { const d = (st[c] || {})[id]; f({ exists: !!d, data: () => d }); }; subs.push(g); g(); } }),
+    onSnapshot: f => { const g = () => f({ docs: Object.entries(st[c] || {}).map(([id, d]) => ({ id, data: () => d })) }); subs.push(g); g(); } }) };
+  try { const old = JSON.parse(localStorage.getItem('cms') || '[]'), mine = old.filter(x => x.ver === D.ver);      // the old no-login version kept comments on this computer: move them to the backend
+    for (const x of mine) { const d = Object.assign({}, x); delete d.id; await api.collection('comments').add(d); }
+    if (mine.length) localStorage.setItem('cms', JSON.stringify(old.filter(x => x.ver !== D.ver))); } catch (e) {}
+  setInterval(() => { if (document.visibilityState === 'visible' && !document.activeElement.matches('textarea')) load().catch(() => {}); }, 30000);   // comments written on another device show up within 30 seconds
+  return api; }
+async function sendForm(btn) { if (!cms.length && !P.some(isOk) && !pick && !vOk()) { note('There are no comments or approvals to send yet.', true); return; }
+  if (btn) btn.disabled = true; note('Sending…');
+  try { const at = new Date().toISOString(), body = new URLSearchParams({ 'form-name': 'review', board: D.board, sent: at, summary: sendText(6000), payload: JSON.stringify(db.state()).slice(0, 60000) });
+    const r = await fetch('/', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: body.toString() }); if (!r.ok) throw { code: 'http_' + r.status };
+    await db.collection('meta').doc('sent').set({ at, n: cms.length });
+    note('Sent to ' + AG + ' (' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) + '). ' + AG + ' will see it the next time it checks the review site.'); }
+  catch (e) { note('Could not send (' + (e && e.code || 'network') + '). Your comments are all still here, please try again.', true); }
+  finally { if (btn) btn.disabled = false; } }
+(async () => { const slow = setTimeout(() => { if (!db && !local) note('Still connecting to comment storage…', true); }, 10000);
+  try { db = D.pub ? await pubDb() : window.claude && window.claude.use ? await window.claude.use('db') : null; } catch (e) { db = null; }
+  if (!db) { clearTimeout(slow); useLocal(); return; }
+  subAppr();
+  db.collection('comments').onSnapshot(s => { clearTimeout(slow); cms = s.docs.map(d => Object.assign({ id: d.id }, d.data())); render(); if ($('note').classList.contains('bad')) note('When you are done, click "Send to ' + AG + '" and ' + AG + ' will receive the comments and start working.'); },
+    () => { clearTimeout(slow); db = null; useLocal(); }); })();
+
+/* ---------- Version approval: needs two clicks, a mistaken click can be cancelled, and an approval can be undone ---------- */
+function vOk() { const a = appr[VK]; return !!(a && a.ok && a.ver === D.ver); }
+function renderVok() { if (P.length) return; const box = $('vok'); box.hidden = false; box.textContent = '';
+  if (vOk()) { const a = appr[VK]; box.appendChild(el('span', 'vst', '✓ You approved this version (' + D.ver + ', ' + new Date(a.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ')'));
+    const u = el('button', '', 'Undo approval'); u.onclick = () => setVok(false); box.appendChild(u); box.appendChild(el('span', 'vhint', 'Pressed by mistake? Undo it.')); return; }
+  const b = el('button', vArm ? 'okb arm' : 'okb', vArm ? 'Confirm approval? Click again' : '✓ Approve this version');
+  b.onclick = () => { if (!vArm) { vArm = setTimeout(() => { vArm = 0; renderVok(); }, 4000); renderVok(); return; } clearTimeout(vArm); vArm = 0; setVok(true); };
+  box.appendChild(b);
+  if (vArm) { const c = el('button', '', 'Cancel'); c.onclick = () => { clearTimeout(vArm); vArm = 0; renderVok(); }; box.appendChild(c); }
+  box.appendChild(el('span', 'vhint', vArm ? 'Cancels itself after 4 seconds' : 'Press it when this version looks good. You can undo it afterwards.')); }
+async function setVok(ok) { const doc = { ok: true, ver: D.ver, at: new Date().toISOString(), title: 'Version approval' };
+  if (db) { try { if (ok) await db.collection('approvals').doc(VK).set(doc); else await db.collection('approvals').doc(VK).delete(); } catch (e) { note('Could not save the approval, please try again.', true); return; } }
+  else { if (ok) appr[VK] = doc; else delete appr[VK]; try { localStorage.setItem(LSK + 'appr', JSON.stringify(appr)); } catch (e) {} }
+  renderVok(); const how = local ? 'click "Copy all comments" and paste it into the chat' : 'click "Send to ' + AG + '"'; note(ok ? 'Version approved. To let ' + AG + ' know, ' + how + '. Pressed by mistake? Click "Undo approval".' : 'Approval undone. To let ' + AG + ' know, ' + how + ' again.'); }
+renderVok();
+
+/* ---------- Pre-approval: proposals before spending ---------- */
+renderOpens();
+if (P.length) { $('propbox').hidden = false;
+  P.forEach(p => { p.segs.forEach(i => { segEls[i].classList.add('prop'); segEls[i].appendChild(el('div', 'pb', p.id)); D.pic[i].prop = p; });
+    const m = el('div', 'pm'); m.style.left = pct(p.t); m.style.width = pct(p.d); ov.appendChild(m); });
+  D.notes.forEach(n => $('pnotes').appendChild(el('li', '', n))); }
+// an approval only counts for this revision: if the proposal changes (rev changes), it must be approved again
+function isOk(p) { const a = appr[p.id]; return !!(a && a.ok && a.rev === p.rev); }
+async function setAppr(p, ok) { const doc = { ok: true, rev: p.rev, kind: p.kind, cost: p.cost, title: p.title, at: new Date().toISOString(), ver: D.ver };
+  if (db) { try { if (ok) await db.collection('approvals').doc(p.id).set(doc); else await db.collection('approvals').doc(p.id).delete(); } catch (e) { note('Could not save the approval, please try again.', true); } }
+  else { if (ok) appr[p.id] = doc; else delete appr[p.id]; try { localStorage.setItem(LSK + 'appr', JSON.stringify(appr)); } catch (e) {} renderProps(); } }
+async function apprAll() { for (const p of P) if (!isOk(p)) await setAppr(p, true); }
+function renderOpens() { if (!D.openings) return; $('openbox').hidden = false; const box = $('opens'); box.textContent = '';
+  D.openings.forEach(o => { const on = pick === o.id, c = el('div', 'op' + (on ? ' on' : '')); c.appendChild(el('h3', '', 'Proposal ' + o.id + ' | ' + o.title)); c.appendChild(el('p', '', o.text)); c.appendChild(el('p', 'm', o.meta));
+    const b = el('button', on ? '' : 'okb', on ? '✓ Selected' : 'Pick this opening'); b.onclick = () => setPick(o.id); c.appendChild(b); box.appendChild(c); }); }
+async function setPick(id) { if (db) { try { await db.collection('choices').doc('opening').set({ pick: id, at: new Date().toISOString(), ver: D.ver }); } catch (e) { note('Could not save your choice, please try again.', true); } } else { pick = id; try { localStorage.setItem(LSK + 'pick', id); } catch (e) {} renderOpens(); } }
+function subAppr() { db.collection('choices').doc('opening').onSnapshot(s => { pick = s.exists ? s.data().pick : null; renderOpens(); }, () => {});
+  db.collection('approvals').onSnapshot(s => { appr = {}; s.docs.forEach(d => { appr[d.id] = d.data(); }); if (P.length) renderProps(); renderVok(); }, () => {}); }
+async function propSay(p) { const text = (pdr[p.id] || '').trim(); if (!text) return;
+  const doc = { t: p.t, seg: p.segs[0] + 1, segTitle: p.id + ' ' + p.title, cat: 'Proposal', prop: p.id, rev: p.rev, text, at: new Date().toISOString(), ver: D.ver, done: false };
+  if (db) { try { await db.collection('comments').add(doc); delete pdr[p.id]; } catch (e) { note('Could not save the comment. Your text is still there, please try again.', true); } }
+  else { delete pdr[p.id]; cms.push(Object.assign({ id: 'l' + Date.now() }, doc)); saveLocal(); render(); } }
+function renderProps() { const box = $('props'), a = document.activeElement, keep = a && a.dataset ? a.dataset.pid : null; box.textContent = '';
+  let okN = 0, okC = 0, all = 0; P.forEach(p => { all += p.cost; if (isOk(p)) { okN++; okC += p.cost; } });
+  const sum = $('propsum'); sum.textContent = '';
+  sum.appendChild(el('span', 'big', 'Approved ' + okN + ' of ' + P.length + (P.length === 1 ? ' item, ' : ' items, ') + pts(okC) + ' in total'));
+  sum.appendChild(el('span', '', 'Doing everything costs ' + pts(all)));
+  if (okN < P.length) { const b = el('button', 'okb', 'Approve all'); b.onclick = apprAll; sum.appendChild(b); }
+  sum.appendChild(el('span', 'warn', local ? (D.pub ? 'No-login version: approvals are kept on this computer only. "Copy all comments" includes your approvals and opening pick; paste it into the chat with ' + AG + ' for them to count.' : 'Local mode: approvals are kept on this computer only. "Copy all comments" includes your approvals and opening pick; paste it into the chat with ' + AG + ' for them to count.') : ''));
+  if (!local) { const sb2 = el('button', 'sendc', 'Send comments and approvals to ' + AG); sb2.onclick = sendAgent; sum.appendChild(sb2); sum.appendChild(el('span', '', AG + ' will only do approved items.')); }
+  P.forEach(p => { const ok = isOk(p), c = el('div', 'pc' + (ok ? ' ok' : '')), hd = el('div', 'hd');
+    hd.appendChild(el('span', 'pid', p.id)); hd.appendChild(el('span', '', (p.label || (p.kind === 'video' ? 'AI video, 5 s' : 'AI image')) + ' | ' + pts(p.cost)));  // label can be customized
+    const tm = el('span', 'tm', fmt(p.t)); tm.onclick = () => go(p.t + 0.05); hd.appendChild(tm); hd.appendChild(el('span', '', 'Takes ' + p.d.toFixed(1) + ' s'));
+    if (p.rev > 1) hd.appendChild(el('span', 'pp', 'Revision ' + p.rev)); c.appendChild(hd);
+    const l = el('div'), th = el('div', 'th'); thumb(th, p.t + Math.min(1.5, p.d / 2)); th.onclick = () => go(p.t + 0.05); l.appendChild(th); l.appendChild(el('div', 'cap', (D.mode === 'new' ? 'Storyboard sketch: ' : 'Current picture: ') + p.cur)); c.appendChild(l);
+    const r = el('div'); r.appendChild(el('h3', '', (D.mode === 'new' ? '' : 'Replace with: ') + p.title)); const dl = el('dl');
+    const row = (k, v) => { if (!v) return; dl.appendChild(el('dt', '', k)); dl.appendChild(el('dd', '', v)); };
+    row('Picture', p.desc); row('Camera', p.move); row(VO, p.zh); row('Basis', p.basis); row('Risk', p.risk); row('Changed', p.note); r.appendChild(dl); c.appendChild(r);
+    cms.filter(x => x.prop === p.id && x.text).forEach(x => c.appendChild(el('div', 'said', 'Your comment: ' + x.text + (x.reply ? '\n' + AG + ': ' + x.reply : ''))));
+    if (appr[p.id] && !ok) c.appendChild(el('div', 'said', 'This item was changed, so your earlier approval no longer counts. Please review the new version and decide again.'));
+    const act = el('div', 'act'), ta2 = el('textarea'); ta2.rows = 2; ta2.placeholder = p.id + ': what should change?'; ta2.dataset.pid = p.id; ta2.value = pdr[p.id] || ''; ta2.oninput = () => { pdr[p.id] = ta2.value; };
+    const sb = el('button', '', 'Send comment'); sb.onclick = () => propSay(p);
+    const ab = el('button', ok ? '' : 'okb', ok ? '✓ Approved (click to undo)' : 'Approve this item'); ab.onclick = () => setAppr(p, !ok);
+    act.appendChild(ta2); act.appendChild(sb); act.appendChild(ab); c.appendChild(act); box.appendChild(c); });
+  if (keep) { const t2 = box.querySelector('textarea[data-pid="' + keep + '"]'); if (t2) { t2.focus(); t2.setSelectionRange(t2.value.length, t2.value.length); } } }
+
+/* ---------- Send to AI: Artifact mode wakes the chat with a comment; cloud mode submits a form ---------- */
+let cmApi = null; (async () => { try { cmApi = window.claude && window.claude.use ? await window.claude.use('comments') : null; } catch (e) { cmApi = null; } })();
+const BACK = 'Please go back to the chat and tell ' + AG + ' to read the comments.';
+function sendText(lim) { lim = lim || 3600; const arr = cms.slice().sort((a, b) => a.t - b.t), okP = P.filter(isOk), enc = new TextEncoder();
+  let head = '[' + D.ver + '] From Review Desk: ' + arr.length + (arr.length === 1 ? ' comment' : ' comments') + (arr.some(c => !c.text) ? ' (' + arr.filter(c => !c.text).length + (arr.filter(c => !c.text).length === 1 ? ' mark' : ' marks') + ' not written yet)' : '');
+  if (D.openings) head += '; opening: proposal ' + (pick || '(not picked yet)');
+  if (P.length) head += '; approved ' + okP.length + ' of ' + P.length + (P.length === 1 ? ' item' : ' items') + (okP.length ? ' (' + okP.map(p => p.id).join(', ') + ', ' + okP.reduce((a, p) => a + p.cost, 0) + ' credits)' : '');
+  if (!P.length) head += '; version ' + (vOk() ? 'approved' : 'not approved yet');
+  head += '. Full details are in the Review Desk database.'; let out = head;
+  const shot = t => { let i = -1; (D.pic || []).forEach((p, k) => { if (p.s <= t + 0.001) i = k; }); if (i < 0) return ''; const p = D.pic[i]; return ' | Shot ' + (i + 1) + (p.t === 'Shot ' + (i + 1) ? '' : ' "' + p.t + '"') + (p.src ? ' | ' + p.src : ''); };   // every comment carries the shot name and source so the AI knows which shot to change
+  for (const c of arr) { const line = '\n[' + (c.t >= 0 ? fmt(c.t) + shot(c.t) : 'Whole film') + (c.prop ? ' ' + c.prop : '') + (c.whole ? ' | check the whole film' : '') + '] ' + (c.text || '(empty)'); if (enc.encode(out + line).length > lim) { out += '\n… (read the database for the rest)'; break; } out += line; }
+  return out; }
+async function sendAgent(ev) { const btn = ev && ev.currentTarget;
+  { const f = await flushDrafts(); if (f.n || f.bad) render(); if (f.bad) { note(f.bad + ' of the marks could not be saved, so nothing was sent. Your text is still there, please try again.', true); return; } }   // save text written in marks first, then send
+  if (D.pub && db) return sendForm(btn);
+  if (local || !db) { note('Cloud is not reachable from here, so it cannot be sent directly. Click "Copy all comments" and paste it into the chat.', true); return; }
+  if (!cms.length && !P.some(isOk) && !vOk()) { note('There are no comments or approvals to send yet.', true); return; }
+  if (!cmApi) { note('This page cannot send to ' + AG + ' directly. ' + BACK, true); return; }
+  if (btn) btn.disabled = true; note('Sending…');
+  try { let can = 'available'; try { can = await cmApi.canSendToClaude(); } catch (e) { can = 'off'; }
+    if (can !== 'available') { note((can === 'no_session' ? 'There is no open ' + AG + ' chat to receive it right now. ' : 'This page cannot send to ' + AG + ' directly. ') + BACK, true); return; }
+    const anchor = await cmApi.anchorFor($('ttl')); await cmApi.sendToClaude({ anchor, text: sendText() });
+    note('Sent to ' + AG + ' (' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) + '). ' + AG + ' will start working, no need to go back to the chat.'); }
+  catch (e) { const c = e && e.code; note(c === 'consent_required' ? 'You have not clicked "Allow", so nothing was sent. Click again and choose Allow.' : c === 'claude_unavailable' ? 'There is no open ' + AG + ' chat to receive it right now. ' + BACK : c === 'rate_limited' ? 'Sending too fast. Wait a moment and try again.' : 'Could not send (' + (c || 'unknown') + '). ' + BACK, true); }
+  finally { if (btn) btn.disabled = false; } }
+document.querySelectorAll('.sendc').forEach(b => { b.onclick = sendAgent; });
+
+/* ---------- Start ---------- */
+show(0, 'init'); thumb(pv, 0); $('pvtag').textContent = 'Press play to start';
+</script>
+</body>
+</html>

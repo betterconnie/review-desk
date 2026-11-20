@@ -1,5 +1,7 @@
 # 審片台頁面資料 D 的格式（給 AI 代理看）
 
+[English: data-format.en.md](data-format.en.md)
+
 `assets/page.tpl.html` 裡有一行 `const D = __DATA__;`，`scripts/make_board.py` 把下面這個 JSON 物件填進去。
 `--extra extra.json` 的內容會用 `dict.update` 合併進 D（頂層鍵整個蓋掉），**唯一例外是 `kinds`：是逐個類別合併**，沒列到的類別保留自動產生的。
 以下每個欄位都是從 `page.tpl.html` 的程式碼確認過的（括號內是模板用到它的地方）。時間單位一律是**秒**（可小數）。

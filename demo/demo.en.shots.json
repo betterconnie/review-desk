@@ -1,0 +1,51 @@
+[
+  {
+    "start": 0,
+    "title": "Title card",
+    "kind": "card",
+    "how": "SVG + CSS + GSAP title-card animation",
+    "src": "Original, no external assets"
+  },
+  {
+    "start": 3,
+    "title": "Sunrise",
+    "kind": "code",
+    "how": "SVG + GSAP motion graphics, rendered with HyperFrames",
+    "src": "Original, no external assets"
+  },
+  {
+    "start": 8,
+    "title": "Pour-over",
+    "kind": "code",
+    "how": "SVG + GSAP motion graphics, rendered with HyperFrames",
+    "src": "Original, no external assets"
+  },
+  {
+    "start": 12,
+    "title": "4 minutes in a cup",
+    "kind": "fig",
+    "how": "SVG + GSAP bar-chart animation",
+    "src": "Original, no external assets"
+  },
+  {
+    "start": 17,
+    "title": "Storefront",
+    "kind": "code",
+    "how": "SVG + GSAP motion graphics, rendered with HyperFrames",
+    "src": "Original, no external assets"
+  },
+  {
+    "start": 22,
+    "title": "Three reasons",
+    "kind": "card",
+    "how": "SVG + CSS + GSAP title-card animation",
+    "src": "Original, no external assets"
+  },
+  {
+    "start": 27,
+    "title": "End card",
+    "kind": "card",
+    "how": "SVG + CSS + GSAP title-card animation",
+    "src": "Original, no external assets"
+  }
+]
