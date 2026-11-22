@@ -28,6 +28,9 @@ progress{width:100%;height:10px;margin-top:20px;accent-color:var(--accent)}
 #msg{min-height:1.8em;margin-top:8px;color:var(--text)}
 #msg.bad{color:var(--bad)}
 .fine{font-size:14px}
+details.fine{color:var(--muted);margin-bottom:1em}
+summary{cursor:pointer;color:var(--text)}
+pre{white-space:pre-wrap;word-break:break-word;font:13px/1.7 "IBM Plex Mono",ui-monospace,Menlo,monospace;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--text);margin:0 0 1em}
 </style>
 </head>
 <body>
@@ -36,7 +39,7 @@ progress{width:100%;height:10px;margin-top:20px;accent-color:var(--accent)}
   <h1 data-en="Drop a video in. Start reviewing.">把影片拖進來，就能審片</h1>
   <p data-en="Your video is not uploaded. Everything runs in this browser, and your notes are saved on this device.">影片不會上傳。全部在這個瀏覽器裡處理，意見存在這台裝置。</p>
   <label class="drop" id="drop">
-    <input type="file" id="file" accept="video/*">
+    <input type="file" id="file" accept="video/*,.json,application/json" multiple>
     <span data-en="Choose a video">選一支影片</span>
     <small data-en="or drag it here (mp4 works best)">或拖到這裡（mp4 最穩）</small>
   </label>
@@ -45,6 +48,12 @@ progress{width:100%;height:10px;margin-top:20px;accent-color:var(--accent)}
     <input id="ver" value="v1" autocomplete="off">
   </div>
   <p class="fine" data-en="Notes and approval are tied to the file name and the version name. For a new cut, change the version name.">意見和核准綁著「檔名＋版本名」。出新版時把版本名換掉。</p>
+  <details class="fine">
+    <summary data-en="Was the video made by an AI? Add its shot list">片子是 AI 做的？把鏡頭清單一起放進來</summary>
+    <p data-en="Ask the AI that made the video for a shots.json, then choose it together with the video (or drag both in). Your notes will then carry each shot's name and source file, so the AI knows which file to redo.">請做片的 AI 給你一份 shots.json，和影片一起選（或一起拖進來）。意見就會帶上每個鏡頭的名字和素材檔名，AI 一看就知道要重做哪個檔。</p>
+    <p data-en="What to tell the AI:">可以這樣跟 AI 說：</p>
+    <pre id="ask" data-en="Give me a shots.json for this video: a JSON array with one entry per shot, like {&quot;start&quot;: seconds, &quot;title&quot;: &quot;shot name&quot;, &quot;how&quot;: &quot;how it was made&quot;, &quot;src&quot;: &quot;source file name&quot;}.">請給我這支片的 shots.json：一個 JSON 陣列，每個鏡頭一筆，像 {"start": 開始秒數, "title": "鏡頭名", "how": "怎麼做的", "src": "素材檔名"}。</pre>
+  </details>
   <progress id="pg" max="1" value="0" hidden></progress>
   <p id="msg" role="status" aria-live="polite"></p>
 </main>
@@ -70,6 +79,24 @@ const once = (el, ok, ms) => new Promise((res, rej) => {
 const TW = 240, TH = 135, COLS = 15, ROWS = 10, SHEET = COLS * ROWS;   // 和 make_board.py、模板的 thumb() 同一個規格
 const SW = 32, SH = 18, CUT = 0.09;                                  // 切鏡頭：兩格縮成 32x18 比亮度，平均差超過 CUT 就算換鏡頭
 
+const NAMES = EN ? { shot: 'Shot', card: 'Title card', code: 'Motion graphics', fig: 'Chart', aiv: 'AI video', aii: 'AI image', realv: 'Live footage', real: 'Live action', photo: 'Photo', b3d: '3D' }
+  : { shot: '鏡頭', card: '字卡', code: '程式動畫', fig: '圖表', aiv: 'AI 影片', aii: 'AI 圖', realv: '實拍影片', real: '實拍', photo: '照片', b3d: '3D' };
+const PALETTE = ['#5fb4e8', '#ff9ac4', '#2fe0a0', '#f0b545', '#b18cff', '#ff8a3d', '#38c7c0', '#ff7b6b'];
+// 讀使用者給的 shots.json；規則和 make_board.py 的 load_shots 一樣，錯了就講是第幾筆
+async function loadShots(file) {
+  let arr; try { arr = JSON.parse((await file.text()).replace(/^\uFEFF/, '')); } catch (e) { throw nice('鏡頭清單讀不了，它不是正確的 JSON。', 'Cannot read the shot list. It is not valid JSON.'); }
+  if (!Array.isArray(arr) || !arr.length) throw nice('鏡頭清單必須是一個不是空的 JSON 陣列，每筆像 {"start": 0, "title": "開場"}。', 'The shot list must be a non-empty JSON array, each entry like {"start": 0, "title": "Opening"}.');
+  arr.forEach((x, i) => {
+    if (!x || typeof x !== 'object' || Array.isArray(x)) throw nice('鏡頭清單第 ' + (i + 1) + ' 筆不是物件。', 'Shot list entry ' + (i + 1) + ' is not an object.');
+    if (typeof x.start !== 'number' || !(x.start >= 0)) throw nice('鏡頭清單第 ' + (i + 1) + ' 筆的 start 必須是 0 以上的秒數（數字）。', 'Shot list entry ' + (i + 1) + ': start must be a number of seconds, 0 or more.');
+    if (typeof x.title !== 'string' || !x.title.trim()) throw nice('鏡頭清單第 ' + (i + 1) + ' 筆缺少 title（鏡頭名）。', 'Shot list entry ' + (i + 1) + ' is missing title (the shot name).');
+    for (const k of ['kind', 'how', 'src', 'note']) if (k in x && typeof x[k] !== 'string') throw nice('鏡頭清單第 ' + (i + 1) + ' 筆的 ' + k + ' 必須是文字。', 'Shot list entry ' + (i + 1) + ': ' + k + ' must be text.');
+  });
+  arr = arr.slice().sort((a, b) => a.start - b.start);
+  if (new Set(arr.map(x => x.start)).size !== arr.length) throw nice('鏡頭清單有兩個鏡頭的 start 一樣。', 'The shot list has two shots with the same start.');
+  return arr;
+}
+
 async function waveform(file, total) {
   const n = Math.max(1, Math.floor(total * 4)), zero = new Array(n).fill(0);
   if (file.size > 500e6) return zero;                                // shortcut: 超過 500MB 不畫波形（整個檔要讀進記憶體），要支援就改成分段解碼
@@ -82,7 +109,7 @@ async function waveform(file, total) {
   } catch (e) { return zero; }                                       // 沒有聲音軌或瀏覽器解不了：波形留空，不影響審片
 }
 
-async function build(file, url) {
+async function build(file, url, shots) {
   const v = document.createElement('video');
   v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
   try { await once(v, 'loadeddata', 20000); }
@@ -99,7 +126,7 @@ async function build(file, url) {
   const diff = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]); return s / a.length; };
   const flush = () => new Promise(r => sheet.toBlob(b => r(URL.createObjectURL(b)), 'image/jpeg', 0.7));
 
-  const n = Math.max(1, Math.floor(total)), thumbs = [], cuts = [0];
+  const given = !!shots, n = Math.max(1, Math.floor(total)), thumbs = [], cuts = [0];
   let prev = null;
   pg.hidden = false;
   for (let i = 0; i < n; i++) {
@@ -108,7 +135,7 @@ async function build(file, url) {
     if (j === 0) { sx.fillStyle = '#000'; sx.fillRect(0, 0, sheet.width, sheet.height); }
     sx.drawImage(v, (j % COLS) * TW + (TW - dw) / 2, Math.floor(j / COLS) * TH + (TH - dh) / 2, dw, dh);
     const cur = luma();
-    if (prev && diff(prev, cur) > CUT) {                             // 第 i-1 秒和第 i 秒不一樣：對半找 5 次，把變化縮到約 0.03 秒內
+    if (!shots && prev && diff(prev, cur) > CUT) {                             // 第 i-1 秒和第 i 秒不一樣：對半找 5 次，把變化縮到約 0.03 秒內
       let lo = i - 1, hi = i, a = prev, b = cur;
       for (let r = 0; r < 5; r++) { const mid = (lo + hi) / 2; await seek(mid); const m = luma(); if (diff(m, a) > diff(m, b)) { hi = mid; b = m; } else { lo = mid; a = m; } }
       const t = Math.round(hi * 100) / 100;                          // 縮到最後前後兩格還差很多才是換鏡頭；差很少代表是運鏡或淡入淡出，不切
@@ -120,24 +147,38 @@ async function build(file, url) {
   }
   say(T('正在讀聲音…', 'Reading the audio…'));
   const wave = await waveform(file, total), nf = T('（沒有填寫）', '(not filled in)');
+  if (shots) {
+    if (shots.some(x => x.start >= total)) throw nice('鏡頭清單裡有鏡頭的 start 超過影片長度 ' + total + ' 秒。是不是放錯影片了？', 'A shot in the list starts after the end of the video (' + total + ' s). Is this the right video?');
+    shots[0] = Object.assign({}, shots[0], { start: 0 });              // 時間軸要從頭涵蓋整支片
+  } else shots = cuts.map((s, i) => ({ start: s, title: T('鏡頭 ', 'Shot ') + (i + 1) }));
+  const kinds = {}, pic = shots.map((x, i) => {
+    const end = i + 1 < shots.length ? shots[i + 1].start : total, k = x.kind || 'shot';
+    if (!kinds[k]) kinds[k] = [NAMES[k] || k, nf, nf, PALETTE[Object.keys(kinds).length % PALETTE.length]];
+    const e = { s: Math.round(x.start * 100) / 100, d: Math.round((end - x.start) * 100) / 100, k, t: x.title.trim(), b: i };
+    for (const f of ['how', 'src', 'note']) if (x[f]) e[f] = x[f];
+    return e;
+  });
   const D = { title: file.name.replace(/\.[^.]+$/, ''), ver: $('ver').value.trim() || 'v1', total, chunk: 100000, direct: true, agent: 'AI',
-    kinds: { shot: [T('鏡頭', 'Shot'), nf, nf, '#5fb4e8'] }, chap: [], subs: [], vo: [], sfx: [], music: [], wave, thumbs, vsrc: url,
-    pic: cuts.map((s, i) => ({ s, d: Math.round(((i + 1 < cuts.length ? cuts[i + 1] : total) - s) * 100) / 100, k: 'shot', t: T('鏡頭 ', 'Shot ') + (i + 1), b: i })) };
-  // 網頁版沒有 AI 填的鏡頭名和素材檔名，所以複製出去的清單自己帶讀法：片名、每個鏡頭的起訖時間、以時間為準、只改被點到的地方
+    kinds, chap: [], subs: [], vo: [], sfx: [], music: [], wave, thumbs, vsrc: url, pic };
+  // 複製出去的清單自己帶讀法：片名、每個鏡頭的起訖時間、只改被點到的地方。有沒有給鏡頭清單，讀法不一樣
   D.ranges = true;
-  D.copyNote = T('影片：' + file.name + '。讀法：每則開頭是影片時間碼；鏡頭是審片台照畫面變化自動切的，括號裡是那個鏡頭的起訖時間，編號不一定和你的剪輯軌一樣，請以時間為準。只改有意見的地方，其他不要動。',
-    'Video: ' + file.name + '. How to read this: each note starts with the video timecode. Shots were cut automatically from picture changes, and the brackets give that shot\'s start and end. The numbering may not match your edit, so go by the time. Change only what a note points at and leave the rest alone.');
+  D.copyNote = T('影片：' + file.name + '。讀法：每則開頭是影片時間碼，', 'Video: ' + file.name + '. How to read this: each note starts with the video timecode. ') + (given
+    ? T('接著是鏡頭編號、起訖時間、鏡頭名和素材檔名，都照做片時給的鏡頭清單。只改有意見的鏡頭，其他不要動。', 'Then come the shot number, its start and end, its name and its source file, all taken from the shot list supplied with the video. Change only the shots that have a note and leave the rest alone.')
+    : T('鏡頭是審片台照畫面變化自動切的，括號裡是那個鏡頭的起訖時間，編號不一定和你的剪輯軌一樣，請以時間為準。只改有意見的地方，其他不要動。', 'Shots were cut automatically from picture changes, and the brackets give that shot\'s start and end. The numbering may not match your edit, so go by the time. Change only what a note points at and leave the rest alone.'));
   if (EN) D.voLabel = 'Narration / dialogue';
   return D;
 }
 
 let busy = false;
-async function go(file) {
-  if (busy || !file) return; busy = true; say(T('正在打開影片…', 'Opening the video…'));
+async function go(files) {
+  files = [...(files || [])]; if (busy || !files.length) return;
+  const isJson = f => /\.json$/i.test(f.name) || f.type === 'application/json', file = files.find(f => !isJson(f)), list = files.find(isJson);
+  if (!file) { say(T('只收到鏡頭清單，沒有影片。請把影片和清單一起選。', 'Got a shot list but no video. Choose the video together with the list.'), true); $('file').value = ''; return; }
+  busy = true; say(T('正在打開影片…', 'Opening the video…'));
   const url = URL.createObjectURL(file);
   try {
     const tpl = await fetch(EN ? 'page.tpl.en.html' : 'page.tpl.html').then(r => r.ok ? r.text() : Promise.reject(0)).catch(() => { throw nice('審片台介面載不下來，請重新整理再試。', 'Could not load the review desk page. Reload and try again.'); });   // 先拿到介面再看片：介面拿不到就不白跑
-    const D = await build(file, url);
+    const D = await build(file, url, list ? await loadShots(list) : null);
     const js = JSON.stringify(D).replace(/<\//g, '<\\/');
     document.open(); document.write(tpl.replace('__DATA__', () => js)); document.close();   // 用函式取代：資料裡的 $ 不會被當成取代符號
   } catch (e) {
@@ -146,10 +187,10 @@ async function go(file) {
   }
 }
 const drop = $('drop');
-$('file').addEventListener('change', e => go(e.target.files[0]));
+$('file').addEventListener('change', e => go(e.target.files));
 ['dragenter', 'dragover'].forEach(n => drop.addEventListener(n, e => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave', 'drop'].forEach(n => drop.addEventListener(n, e => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', e => go(e.dataTransfer.files[0]));
+drop.addEventListener('drop', e => go(e.dataTransfer.files));
 window.addEventListener('dragover', e => e.preventDefault()); window.addEventListener('drop', e => e.preventDefault());   // 拖歪了不要讓瀏覽器直接把影片開成新頁
 </script>
 </body>
