@@ -266,7 +266,7 @@ const KS = k => D.kinds[k] || [k, '', ''];   // category codes missing from the 
 const CSSK = ['aiv', 'aii', 'realv', 'real', 'fig', 'photo', 'b3d', 'bvid', 'code', 'card', 'warn'];   // color: D.kinds[k][3] first, then the built-in CSS variable, otherwise --card
 const KC = k => (D.kinds[k] && D.kinds[k][3]) || (CSSK.includes(k) ? 'var(--' + k + ')' : 'var(--card)');
 function thumb(e, t) { const i = Math.max(0, Math.min(Math.floor(t), Math.floor(D.total) - 1)), sh = Math.floor(i / 150), j = i % 150;
-  e.style.backgroundImage = 'url(' + (D.mbase || '') + 't' + sh + '.jpg)'; e.style.backgroundPosition = (j % 15) / 14 * 100 + '% ' + Math.floor(j / 15) / 9 * 100 + '%'; }
+  e.style.backgroundImage = 'url(' + (D.thumbs ? D.thumbs[sh] : (D.mbase || '') + 't' + sh + '.jpg') + ')'; e.style.backgroundPosition = (j % 15) / 14 * 100 + '% ' + Math.floor(j / 15) / 9 * 100 + '%'; }
 const find = (arr, t, s, e) => { for (let i = 0; i < arr.length; i++) if (t >= s(arr[i]) && t < e(arr[i])) return i; return -1; };
 const segAt = t => { const i = find(D.pic, t, p => p.s, p => p.s + p.d); return i < 0 ? D.pic.length - 1 : i; };
 const midT = p => p.s + Math.min(p.d * 0.6, p.d - 0.4);
@@ -321,7 +321,7 @@ const subEls = D.subs.map((s, j) => { const x = s[0] * PPS, top = SPINE + 104 + 
 const vid = $('vid'), pv = $('pv'); let T = 0, cur = -1, pend = null, want = false, loaded = -1, progX = 0, curSeg = -1, curSub = -2, seekTimer = 0, moved = false;
 // Fetch each chunk as a blob first: seeking works without server range support. shortcut: about 11MB per chunk is fetched whole, switch to streaming when films get longer or sharper
 // D.direct: one file for the whole film, the browser streams it and never swaps files, so there is no hiccup at chunk boundaries; boards made by make_board.py always use this mode
-const blobs = {}; const getSrc = k => blobs[k] || (blobs[k] = D.direct ? Promise.resolve((D.mbase || '') + 'v' + k + '.mp4') : fetch((D.mbase || '') + 'v' + k + '.mp4').then(r => { if (!r.ok) throw 0; return r.blob(); }).then(b => URL.createObjectURL(b)).catch(() => (D.mbase || '') + 'v' + k + '.mp4'));
+const blobs = {}; const getSrc = k => blobs[k] || (blobs[k] = D.direct ? Promise.resolve(D.vsrc || (D.mbase || '') + 'v' + k + '.mp4') : fetch((D.mbase || '') + 'v' + k + '.mp4').then(r => { if (!r.ok) throw 0; return r.blob(); }).then(b => URL.createObjectURL(b)).catch(() => (D.mbase || '') + 'v' + k + '.mp4'));
 function loadSeek(t, play) { t = Math.max(0, Math.min(t, END)); const k = Math.min(NCH - 1, Math.floor(t / CH)), lt = t - k * CH; want = !!play;
   if (k !== cur) { cur = k; loaded = -1; pend = lt; vid.pause(); pv.hidden = false; $('pvtag').textContent = 'Loading video…'; getSrc(k).then(u => { if (cur !== k) return; vid.src = u; vid.load(); }); }
   else if (loaded === k) { vid.currentTime = lt; if (play) vid.play().catch(() => {}); } else pend = lt; }

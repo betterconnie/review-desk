@@ -295,6 +295,11 @@ def _selftest(out, tmp):
     assert not CJK.search("\n".join(l for l in en_t.split("\n") if "__DATA__" not in l)), "page.tpl.en.html 有中日韓文字"
     assert zh_t.count("\n") == en_t.count("\n"), "兩份模板行數不同：%d vs %d" % (zh_t.count("\n"), en_t.count("\n"))
     assert zh_t.count("function ") == en_t.count("function "), "兩份模板的 function 數量不同"
+    for name, t in ((os.path.basename(TPLS["zh"]), zh_t), (os.path.basename(TPLS["en"]), en_t)):   # 網頁版（docs/app）用的是模板副本，要和 assets 一樣
+        cp = os.path.join(HERE, "..", "docs", "app", name)
+        if os.path.isfile(cp):
+            with open(cp, encoding="utf-8") as f:
+                assert f.read() == t, "docs/app/%s 和 assets 的模板不同，請重新複製：cp assets/page.tpl*.html docs/app/" % name
     print("selftest 通過（zh）：3 個鏡頭、波形有值、無聲片不當掉、錯誤輸入回非 0。輸出在 " + out)
     print("selftest passed (en): 3 shots, English names and messages, English template has no CJK text, both templates stay line-for-line. Output in " + out_en)
 

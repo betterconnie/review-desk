@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>審片台｜網頁版</title>
+<meta name="description" content="把影片拖進瀏覽器就能審片。影片不會上傳。">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;700&display=swap">
+<style>
+:root{--bg:#0b0f14;--panel:#131a22;--panel-up:#1a232e;--line:#2a3644;--text:#e8edf2;--muted:#93a1b0;--accent:#ffd166;--accent-ink:#0b0f14;--bad:#ff7b6b}
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--bg);color:var(--text);-webkit-text-size-adjust:100%}
+body{margin:0;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;font-size:17px;line-height:1.8;line-break:strict}
+main{max-width:34em;margin:0 auto;padding:clamp(32px,9vh,96px) clamp(16px,4vw,32px) 48px}
+a{color:inherit}
+.mark{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:14px;color:var(--muted);text-decoration:none}
+h1{font-size:clamp(28px,6vw,40px);line-height:1.35;margin:.6em 0 .4em}
+p{margin:0 0 1em;color:var(--muted)}
+.drop{display:block;margin:28px 0 16px;padding:40px 20px;text-align:center;background:var(--panel);border:2px dashed var(--line);border-radius:10px;cursor:pointer;color:var(--text);font-weight:700}
+.drop:hover,.drop.over,.drop:focus-within{border-color:var(--accent);background:var(--panel-up)}
+.drop input{position:absolute;opacity:0;width:1px;height:1px}
+.drop small{display:block;font-weight:400;color:var(--muted)}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.row input{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 12px;width:9em}
+.row input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+progress{width:100%;height:10px;margin-top:20px;accent-color:var(--accent)}
+#msg{min-height:1.8em;margin-top:8px;color:var(--text)}
+#msg.bad{color:var(--bad)}
+.fine{font-size:14px}
+</style>
+</head>
+<body>
+<main>
+  <a class="mark" id="home" href="../">← 審片台</a>
+  <h1 data-en="Drop a video in. Start reviewing.">把影片拖進來，就能審片</h1>
+  <p data-en="Your video is not uploaded. Everything runs in this browser, and your notes are saved on this device.">影片不會上傳。全部在這個瀏覽器裡處理，意見存在這台裝置。</p>
+  <label class="drop" id="drop">
+    <input type="file" id="file" accept="video/*">
+    <span data-en="Choose a video">選一支影片</span>
+    <small data-en="or drag it here (mp4 works best)">或拖到這裡（mp4 最穩）</small>
+  </label>
+  <div class="row">
+    <label for="ver" data-en="Version name">版本名</label>
+    <input id="ver" value="v1" autocomplete="off">
+  </div>
+  <p class="fine" data-en="Notes and approval are tied to the file name and the version name. For a new cut, change the version name.">意見和核准綁著「檔名＋版本名」。出新版時把版本名換掉。</p>
+  <progress id="pg" max="1" value="0" hidden></progress>
+  <p id="msg" role="status" aria-live="polite"></p>
+</main>
+<script type="module">
+// 網頁版審片台：make_board.py 用 ffmpeg 做的事（縮圖表、切鏡頭、波形），這裡用瀏覽器做，再把同一份模板寫進這一頁。
+// type=module：這裡的變數不會和模板裡的全域變數撞名（document.open 之後還是同一個 window）。
+const EN = new URLSearchParams(location.search).get('lang') === 'en';
+const T = (zh, en) => EN ? en : zh;
+if (EN) {
+  document.documentElement.lang = 'en'; document.title = 'Review Desk | In your browser';
+  document.querySelectorAll('[data-en]').forEach(e => { e.textContent = e.dataset.en; });
+  const h = document.getElementById('home'); h.textContent = '← Review Desk'; h.href = '../en/';
+}
+const $ = id => document.getElementById(id), msg = $('msg'), pg = $('pg');
+const nice = (zh, en) => Object.assign(new Error(T(zh, en)), { nice: true });   // 可以直接給使用者看的錯誤；其他錯誤一律換成通用訊息
+const say = (t, bad) => { msg.textContent = t; msg.classList.toggle('bad', !!bad); };
+const once = (el, ok, ms) => new Promise((res, rej) => {
+  const to = setTimeout(() => done(rej, new Error('timeout')), ms);
+  const done = (f, x) => { clearTimeout(to); el.removeEventListener(ok, y); el.removeEventListener('error', n); f(x); };
+  const y = () => done(res), n = () => done(rej, new Error('media'));
+  el.addEventListener(ok, y); el.addEventListener('error', n);
+});
+const TW = 240, TH = 135, COLS = 15, ROWS = 10, SHEET = COLS * ROWS;   // 和 make_board.py、模板的 thumb() 同一個規格
+const SW = 32, SH = 18, CUT = 0.09;                                  // 切鏡頭：兩格縮成 32x18 比亮度，平均差超過 CUT 就算換鏡頭
+
+async function waveform(file, total) {
+  const n = Math.max(1, Math.floor(total * 4)), zero = new Array(n).fill(0);
+  if (file.size > 500e6) return zero;                                // shortcut: 超過 500MB 不畫波形（整個檔要讀進記憶體），要支援就改成分段解碼
+  try {
+    const AC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const buf = await new AC(1, 1, 8000).decodeAudioData(await file.arrayBuffer());
+    const ch = buf.getChannelData(0), step = Math.floor(ch.length / n);
+    if (!step) return zero;
+    return zero.map((_, k) => { let s = 0; for (let i = k * step; i < (k + 1) * step; i++) s += ch[i] * ch[i]; return Math.min(99, Math.floor(Math.sqrt(s / step) * 400)); });
+  } catch (e) { return zero; }                                       // 沒有聲音軌或瀏覽器解不了：波形留空，不影響審片
+}
+
+async function build(file, url) {
+  const v = document.createElement('video');
+  v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
+  try { await once(v, 'loadeddata', 20000); }
+  catch (e) { throw nice('這個瀏覽器播不了這支影片。請轉成 mp4（H.264）再試。', 'This browser cannot play this video. Convert it to mp4 (H.264) and try again.'); }
+  const total = Math.round(v.duration * 100) / 100;
+  if (!isFinite(total) || total <= 0 || !v.videoWidth) throw nice('讀不出影片長度或畫面，這個檔案可能不是影片。', 'Cannot read the length or picture. This file may not be a video.');
+
+  const sheet = Object.assign(document.createElement('canvas'), { width: TW * COLS, height: TH * ROWS }), sx = sheet.getContext('2d');
+  const small = Object.assign(document.createElement('canvas'), { width: SW, height: SH }), mx = small.getContext('2d', { willReadFrequently: true });
+  const k = Math.min(TW / v.videoWidth, TH / v.videoHeight), dw = v.videoWidth * k, dh = v.videoHeight * k;
+  const seek = async t => { v.currentTime = Math.min(t, Math.max(0, v.duration - 0.05)); await once(v, 'seeked', 15000); };
+  const luma = () => { mx.drawImage(v, 0, 0, SW, SH); const d = mx.getImageData(0, 0, SW, SH).data, o = new Float32Array(SW * SH);
+    for (let i = 0; i < o.length; i++) o[i] = (d[i * 4] * 299 + d[i * 4 + 1] * 587 + d[i * 4 + 2] * 114) / 255000; return o; };
+  const diff = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]); return s / a.length; };
+  const flush = () => new Promise(r => sheet.toBlob(b => r(URL.createObjectURL(b)), 'image/jpeg', 0.7));
+
+  const n = Math.max(1, Math.floor(total)), thumbs = [], cuts = [0];
+  let prev = null;
+  pg.hidden = false;
+  for (let i = 0; i < n; i++) {
+    await seek(i);
+    const j = i % SHEET;
+    if (j === 0) { sx.fillStyle = '#000'; sx.fillRect(0, 0, sheet.width, sheet.height); }
+    sx.drawImage(v, (j % COLS) * TW + (TW - dw) / 2, Math.floor(j / COLS) * TH + (TH - dh) / 2, dw, dh);
+    const cur = luma();
+    if (prev && diff(prev, cur) > CUT) {                             // 第 i-1 秒和第 i 秒不一樣：對半找 5 次，把變化縮到約 0.03 秒內
+      let lo = i - 1, hi = i, a = prev, b = cur;
+      for (let r = 0; r < 5; r++) { const mid = (lo + hi) / 2; await seek(mid); const m = luma(); if (diff(m, a) > diff(m, b)) { hi = mid; b = m; } else { lo = mid; a = m; } }
+      const t = Math.round(hi * 100) / 100;                          // 縮到最後前後兩格還差很多才是換鏡頭；差很少代表是運鏡或淡入淡出，不切
+      if (diff(a, b) > CUT / 2 && t - cuts[cuts.length - 1] >= 0.5 && total - t >= 0.5) cuts.push(t);
+    }
+    prev = cur;
+    if (j === SHEET - 1 || i === n - 1) thumbs.push(await flush());
+    pg.value = (i + 1) / n; say(T('正在看片：', 'Reading the video: ') + (i + 1) + ' / ' + n + T(' 秒', ' s'));
+  }
+  say(T('正在讀聲音…', 'Reading the audio…'));
+  const wave = await waveform(file, total), nf = T('（沒有填寫）', '(not filled in)');
+  const D = { title: file.name.replace(/\.[^.]+$/, ''), ver: $('ver').value.trim() || 'v1', total, chunk: 100000, direct: true, agent: 'AI',
+    kinds: { shot: [T('鏡頭', 'Shot'), nf, nf, '#5fb4e8'] }, chap: [], subs: [], vo: [], sfx: [], music: [], wave, thumbs, vsrc: url,
+    pic: cuts.map((s, i) => ({ s, d: Math.round(((i + 1 < cuts.length ? cuts[i + 1] : total) - s) * 100) / 100, k: 'shot', t: T('鏡頭 ', 'Shot ') + (i + 1), b: i })) };
+  if (EN) D.voLabel = 'Narration / dialogue';
+  return D;
+}
+
+let busy = false;
+async function go(file) {
+  if (busy || !file) return; busy = true; say(T('正在打開影片…', 'Opening the video…'));
+  const url = URL.createObjectURL(file);
+  try {
+    const tpl = await fetch(EN ? 'page.tpl.en.html' : 'page.tpl.html').then(r => r.ok ? r.text() : Promise.reject(0)).catch(() => { throw nice('審片台介面載不下來，請重新整理再試。', 'Could not load the review desk page. Reload and try again.'); });   // 先拿到介面再看片：介面拿不到就不白跑
+    const D = await build(file, url);
+    const js = JSON.stringify(D).replace(/<\//g, '<\\/');
+    document.open(); document.write(tpl.replace('__DATA__', () => js)); document.close();   // 用函式取代：資料裡的 $ 不會被當成取代符號
+  } catch (e) {
+    busy = false; pg.hidden = true; URL.revokeObjectURL(url); $('file').value = '';   // 清掉選檔：同一個檔才能再選一次
+    say(e.nice ? e.message : T('處理這支影片時出錯了。請轉成 mp4（H.264）再試。', 'Something went wrong while reading this video. Convert it to mp4 (H.264) and try again.'), true);
+  }
+}
+const drop = $('drop');
+$('file').addEventListener('change', e => go(e.target.files[0]));
+['dragenter', 'dragover'].forEach(n => drop.addEventListener(n, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(n => drop.addEventListener(n, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => go(e.dataTransfer.files[0]));
+window.addEventListener('dragover', e => e.preventDefault()); window.addEventListener('drop', e => e.preventDefault());   // 拖歪了不要讓瀏覽器直接把影片開成新頁
+</script>
+</body>
+</html>

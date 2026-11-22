@@ -34,6 +34,10 @@ A film is made of shots. A chat box has one line.
 - **Works on a phone.**
 - **The film stays on your computer**: by default it opens one local web page, and neither the video nor the comments are uploaded (the page only asks Google Fonts for font files).
 
+## No install: the browser version
+
+Open the [browser version](https://betterconnie.github.io/review-desk/app/?lang=en) and drop a video in. Nothing is uploaded; everything runs in your browser, and shots are cut automatically from picture changes. Install the skill below when you want your own shot names and sources, subtitles, or an AI agent to open the desk for you.
+
 ## Install
 
 You need Python 3.9 or later and ffmpeg. There are no packages to install.
