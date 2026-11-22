@@ -123,6 +123,10 @@ async function build(file, url) {
   const D = { title: file.name.replace(/\.[^.]+$/, ''), ver: $('ver').value.trim() || 'v1', total, chunk: 100000, direct: true, agent: 'AI',
     kinds: { shot: [T('鏡頭', 'Shot'), nf, nf, '#5fb4e8'] }, chap: [], subs: [], vo: [], sfx: [], music: [], wave, thumbs, vsrc: url,
     pic: cuts.map((s, i) => ({ s, d: Math.round(((i + 1 < cuts.length ? cuts[i + 1] : total) - s) * 100) / 100, k: 'shot', t: T('鏡頭 ', 'Shot ') + (i + 1), b: i })) };
+  // 網頁版沒有 AI 填的鏡頭名和素材檔名，所以複製出去的清單自己帶讀法：片名、每個鏡頭的起訖時間、以時間為準、只改被點到的地方
+  D.ranges = true;
+  D.copyNote = T('影片：' + file.name + '。讀法：每則開頭是影片時間碼；鏡頭是審片台照畫面變化自動切的，括號裡是那個鏡頭的起訖時間，編號不一定和你的剪輯軌一樣，請以時間為準。只改有意見的地方，其他不要動。',
+    'Video: ' + file.name + '. How to read this: each note starts with the video timecode. Shots were cut automatically from picture changes, and the brackets give that shot\'s start and end. The numbering may not match your edit, so go by the time. Change only what a note points at and leave the rest alone.');
   if (EN) D.voLabel = 'Narration / dialogue';
   return D;
 }

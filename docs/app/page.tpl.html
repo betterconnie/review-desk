@@ -551,8 +551,8 @@ function sendText(lim) { lim = lim || 3600; const arr = cms.slice().sort((a, b) 
   if (D.openings) head += '；開場選提案 ' + (pick || '（還沒選）');
   if (P.length) head += '；已核准 ' + okP.length + '／' + P.length + ' 項' + (okP.length ? '（' + okP.map(p => p.id).join('、') + '，共 ' + okP.reduce((a, p) => a + p.cost, 0) + ' 點）' : '');
   if (!P.length) head += '；整版' + (vOk() ? '已核准' : '還沒核准');
-  head += '。完整內容在審片台資料庫。'; let out = head;
-  const shot = t => { let i = -1; (D.pic || []).forEach((p, k) => { if (p.s <= t + 0.001) i = k; }); if (i < 0) return ''; const p = D.pic[i]; return '｜鏡頭 ' + (i + 1) + (p.t === '鏡頭 ' + (i + 1) ? '' : '〈' + p.t + '〉') + (p.src ? '｜' + p.src : ''); };   // 每則意見帶鏡頭名和素材來源，AI 才知道要改哪一鏡
+  head += '。完整內容在審片台資料庫。'; let out = head + (D.copyNote ? '\n' + D.copyNote : '');
+  const shot = t => { let i = -1; (D.pic || []).forEach((p, k) => { if (p.s <= t + 0.001) i = k; }); if (i < 0) return ''; const p = D.pic[i]; return '｜鏡頭 ' + (i + 1) + (D.ranges ? '（' + fmt(p.s) + '–' + fmt(p.s + p.d) + '）' : '') + (p.t === '鏡頭 ' + (i + 1) ? '' : '〈' + p.t + '〉') + (p.src ? '｜' + p.src : ''); };   // 每則意見帶鏡頭名和素材來源，AI 才知道要改哪一鏡
   for (const c of arr) { const line = '\n[' + (c.t >= 0 ? fmt(c.t) + shot(c.t) : '整片') + (c.prop ? ' ' + c.prop : '') + (c.whole ? '｜整片都要檢查' : '') + '] ' + (c.text || '（未寫）'); if (enc.encode(out + line).length > lim) { out += '\n…（其餘請讀資料庫）'; break; } out += line; }
   return out; }
 async function sendAgent(ev) { const btn = ev && ev.currentTarget;

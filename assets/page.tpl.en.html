@@ -551,8 +551,8 @@ function sendText(lim) { lim = lim || 3600; const arr = cms.slice().sort((a, b) 
   if (D.openings) head += '; opening: proposal ' + (pick || '(not picked yet)');
   if (P.length) head += '; approved ' + okP.length + ' of ' + P.length + (P.length === 1 ? ' item' : ' items') + (okP.length ? ' (' + okP.map(p => p.id).join(', ') + ', ' + okP.reduce((a, p) => a + p.cost, 0) + ' credits)' : '');
   if (!P.length) head += '; version ' + (vOk() ? 'approved' : 'not approved yet');
-  head += '. Full details are in the Review Desk database.'; let out = head;
-  const shot = t => { let i = -1; (D.pic || []).forEach((p, k) => { if (p.s <= t + 0.001) i = k; }); if (i < 0) return ''; const p = D.pic[i]; return ' | Shot ' + (i + 1) + (p.t === 'Shot ' + (i + 1) ? '' : ' "' + p.t + '"') + (p.src ? ' | ' + p.src : ''); };   // every comment carries the shot name and source so the AI knows which shot to change
+  head += '. Full details are in the Review Desk database.'; let out = head + (D.copyNote ? '\n' + D.copyNote : '');
+  const shot = t => { let i = -1; (D.pic || []).forEach((p, k) => { if (p.s <= t + 0.001) i = k; }); if (i < 0) return ''; const p = D.pic[i]; return ' | Shot ' + (i + 1) + (D.ranges ? ' (' + fmt(p.s) + '–' + fmt(p.s + p.d) + ')' : '') + (p.t === 'Shot ' + (i + 1) ? '' : ' "' + p.t + '"') + (p.src ? ' | ' + p.src : ''); };   // every comment carries the shot name and source so the AI knows which shot to change
   for (const c of arr) { const line = '\n[' + (c.t >= 0 ? fmt(c.t) + shot(c.t) : 'Whole film') + (c.prop ? ' ' + c.prop : '') + (c.whole ? ' | check the whole film' : '') + '] ' + (c.text || '(empty)'); if (enc.encode(out + line).length > lim) { out += '\n… (read the database for the rest)'; break; } out += line; }
   return out; }
 async function sendAgent(ev) { const btn = ev && ev.currentTarget;
