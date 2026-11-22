@@ -64,7 +64,7 @@ To do it yourself:
 
 ```bash
 python3 scripts/make_board.py your-video.mp4 --out review_v1 --title "Film title" --ver v1 --lang en
-cd review_v1 && python3 -m http.server 8787 --bind 127.0.0.1
+python3 scripts/serve.py review_v1 8787
 ```
 
 Open `http://127.0.0.1:8787/`. Without a shot list, the script detects shot changes automatically. With one (`--shots shots.json`), each shot also shows how it was made and where its asset came from. `--lang en` gives the English interface; leave it out for Traditional Chinese.
@@ -73,7 +73,7 @@ Try the demo film first:
 
 ```bash
 python3 scripts/make_board.py demo/demo.mp4 --shots demo/demo.shots.json --srt demo/demo.srt --out review_demo
-cd review_demo && python3 -m http.server 8787 --bind 127.0.0.1
+python3 scripts/serve.py review_demo 8787
 ```
 
 Then open `http://127.0.0.1:8787/`. The demo film and its shot list are in Traditional Chinese; the interface language is set by `--lang`.
@@ -88,6 +88,7 @@ Then open `http://127.0.0.1:8787/`. The demo film and its shot list are in Tradi
 |---|---|
 | `SKILL.md` | Skill instructions for AI agents (Traditional Chinese, with an English section) |
 | `scripts/make_board.py` | Video to review desk folder (`--lang zh\|en`) |
+| `scripts/serve.py` | Serves a desk locally (seeking in the video works) |
 | `assets/page.tpl.html` | Review desk page template, Traditional Chinese (single file, no framework) |
 | `assets/page.tpl.en.html` | The same template in English, kept line for line |
 | `references/user-guide.en.md` | Guide for the reviewer (Chinese: `references/操作說明.md`) |

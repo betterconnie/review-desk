@@ -50,10 +50,10 @@ python3 <這個技能的資料夾>/scripts/make_board.py 成片.mp4 \
 ### 3. 開給使用者
 
 ```bash
-cd review_v1 && python3 -m http.server 8787 --bind 127.0.0.1
+python3 <這個技能的資料夾>/scripts/serve.py review_v1 8787
 ```
 
-先確認連接埠沒人用，再把 `http://127.0.0.1:8787/` 給使用者（有瀏覽器工具就直接幫他打開）。不要叫使用者雙擊 `index.html`：用 `file://` 開，影片和縮圖在部分瀏覽器會載不出來。
+用技能附的 `serve.py`，不要用 `python3 -m http.server`：後者不支援 Range，在 Chrome 拖到中間再按播放會跳回開頭。先確認連接埠沒人用，再把 `http://127.0.0.1:8787/` 給使用者（有瀏覽器工具就直接幫他打開）。不要叫使用者雙擊 `index.html`：用 `file://` 開，影片和縮圖在部分瀏覽器會載不出來。
 
 開之前自己先看一次：載入頁面，確認影片有畫面、時間軸有縮圖、瀏覽器主控台沒有錯誤。手機要審的話，手機寬度也載入一次。
 
@@ -137,10 +137,10 @@ python3 <this skill's folder>/scripts/make_board.py film.mp4 \
 **3. Open it for the user.**
 
 ```bash
-cd review_v1 && python3 -m http.server 8787 --bind 127.0.0.1
+python3 <this skill's folder>/scripts/serve.py review_v1 8787
 ```
 
-Check first that the port is free, then give the user `http://127.0.0.1:8787/` (open it for them if you have a browser tool). Do not tell the user to double-click `index.html`: over `file://`, the video and thumbnails fail to load in some browsers.
+Use the bundled `serve.py`, not `python3 -m http.server`: the latter has no Range support, so in Chrome seeking and then pressing play restarts the film at 0. Check first that the port is free, then give the user `http://127.0.0.1:8787/` (open it for them if you have a browser tool). Do not tell the user to double-click `index.html`: over `file://`, the video and thumbnails fail to load in some browsers.
 
 Look at it yourself before handing it over: load the page, confirm the video shows a picture, the timeline has thumbnails and the browser console has no errors. If the user will review on a phone, load it at phone width too.
 

@@ -63,7 +63,7 @@ python3 ~/.claude/skills/review-desk/scripts/make_board.py --selftest
 
 ```bash
 python3 scripts/make_board.py 成片.mp4 --out review_v1 --title "片名" --ver v1
-cd review_v1 && python3 -m http.server 8787 --bind 127.0.0.1
+python3 scripts/serve.py review_v1 8787
 ```
 
 打開 `http://127.0.0.1:8787/`。沒給鏡頭清單時，程式會自動偵測鏡頭切換點；有清單（`--shots shots.json`）的話，每一鏡會多顯示怎麼做的、素材來源。
@@ -72,7 +72,7 @@ cd review_v1 && python3 -m http.server 8787 --bind 127.0.0.1
 
 ```bash
 python3 scripts/make_board.py demo/demo.mp4 --shots demo/demo.shots.json --srt demo/demo.srt --out review_demo
-cd review_demo && python3 -m http.server 8787 --bind 127.0.0.1
+python3 scripts/serve.py review_demo 8787
 ```
 
 然後打開 `http://127.0.0.1:8787/`。
@@ -87,6 +87,7 @@ cd review_demo && python3 -m http.server 8787 --bind 127.0.0.1
 |---|---|
 | `SKILL.md` | 給 AI 代理看的技能說明 |
 | `scripts/make_board.py` | 影片 → 審片台資料夾 |
+| `scripts/serve.py` | 在本機開審片台（支援從影片中間開始播） |
 | `assets/page.tpl.html` | 審片台網頁模板（單檔，無框架） |
 | `references/操作說明.md` | 給審片的人看的說明 |
 | `references/data-format.md` | 資料格式（進階） |
